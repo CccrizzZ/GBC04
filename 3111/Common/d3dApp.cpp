@@ -5,6 +5,7 @@
 #include "d3dApp.h"
 #include <WindowsX.h>
 
+
 using Microsoft::WRL::ComPtr;
 using namespace std;
 using namespace DirectX;
@@ -15,6 +16,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	// Forward hwnd on because we can get messages (e.g., WM_CREATE)
 	// before CreateWindow returns, and thus before mhMainWnd is valid.
     return D3DApp::GetApp()->MsgProc(hwnd, msg, wParam, lParam);
+
 }
 
 D3DApp* D3DApp::mApp = nullptr;

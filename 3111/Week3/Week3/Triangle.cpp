@@ -1,4 +1,5 @@
 #include "../../Common/d3dApp.h"
+#include <iostream>
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 using namespace DirectX::PackedVector;
@@ -120,7 +121,7 @@ void TriangleApp::OnResize()
 
 void TriangleApp::Update(const GameTimer& gt)
 {
-
+	std::cout << "n";
 }
 
 void TriangleApp::Draw(const GameTimer& gt)

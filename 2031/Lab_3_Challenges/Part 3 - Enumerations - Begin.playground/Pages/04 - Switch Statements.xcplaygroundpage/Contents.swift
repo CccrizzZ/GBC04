@@ -16,5 +16,4 @@ enum Season: String, CaseIterable {
   case autumn
 }
 
-
 //: [⇒ Next: 05 - More Switch Statements](@next)

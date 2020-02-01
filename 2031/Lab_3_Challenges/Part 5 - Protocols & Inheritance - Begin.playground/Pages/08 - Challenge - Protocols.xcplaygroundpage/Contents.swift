@@ -18,8 +18,9 @@
 */
 
 
-// TODO: Write solution here
-
+protocol Shape{
+    
+}
 
 
 /*:

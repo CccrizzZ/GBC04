@@ -19,8 +19,43 @@
 
 
 protocol Shape{
+    var area: Double{get}
+}
+
+struct Square : Shape{
+    var side: Double
+    
+    var area: Double{
+        return side*side
+    }
     
 }
+
+struct Triangle : Shape{
+    var base: Double
+    var height: Double
+    var area: Double{
+        return (height*base)/2
+    }
+}
+
+struct Circle : Shape{
+    var radians: Double
+    var area: Double{
+        return Double.pi*(radians*radians)
+    }
+}
+
+let s = Square(side: 10)
+let t = Triangle(base: 5, height: 10)
+let c = Circle(radians: 2)
+
+let newArr: [Shape] = [s,t,c]
+
+let newArea = newArr.map{$0.area}
+
+print(newArea)
+
 
 
 /*:
@@ -36,10 +71,22 @@ func isInteger(number: Double) -> Bool {
 }
 // -----------------------------------
 
-// TODO: Write solution here
+extension FloatingPoint{
+    func isInteger(number: Double) -> Void {
+        print(number.rounded() == number)
+    }
+    func isInteger(number: Float) -> Void {
+        print(number.rounded() == number)
+    }
+}
 
 
 
 
+let temp: Double = 2.56
+let temp2: Float = 2.3
+let temp3: Double = 2
 
-
+temp.isInteger(number: temp)
+temp2.isInteger(number: temp2)
+temp3.isInteger(number: temp3)

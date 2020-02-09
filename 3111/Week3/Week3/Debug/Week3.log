@@ -1,2 +1,6 @@
 ﻿  winmain.cpp
+c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(509): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
+c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(510): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
+c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(511): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
+c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(512): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
   Week3.vcxproj -> C:\Users\crizz\Desktop\GBC04\3111\Week3\Debug\Week3.exe

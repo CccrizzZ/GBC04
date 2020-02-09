@@ -655,3 +655,354 @@ GeometryGenerator::MeshData GeometryGenerator::CreateQuad(float x, float y, floa
 
     return meshData;
 }
+
+GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float width, float height, float depth, uint32 numSubdivisions)
+{
+	MeshData meshData;
+
+	// Vertex
+
+	Vertex v[5];
+
+	float w2 = 0.5f*width;  // x
+	float h2 = 0.5f*height; // y
+	float d2 = 0.5f*depth;  // z
+
+	// Bottom
+	v[0] = Vertex(-w2, 0.0f, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[1] = Vertex(+w2, 0.0f, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[2] = Vertex(-w2, 0.0f, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[3] = Vertex(+w2, 0.0f, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Top
+	v[4] = Vertex(0.0f, +h2, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	meshData.Vertices.assign(&v[0], &v[5]);
+	// Index
+	uint32 i[18];
+
+	// Bottom
+	i[0] = 0; 
+	i[1] = 2; 
+	i[2] = 1;
+	i[3] = 1; 
+	i[4] = 2; 
+	i[5] = 3;
+
+	// Faces
+	i[6] = 0; 
+	i[7] = 1; 
+	i[8] = 4;
+
+	i[9] = 1; 
+	i[10] = 3; 
+	i[11] = 4;
+
+	i[12] = 3; 
+	i[13] = 2; 
+	i[14] = 4;
+
+	i[15] = 2; 
+	i[16] = 0; 
+	i[17] = 4;
+
+	meshData.Indices32.assign(&i[0], &i[18]);
+
+	numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+
+	for (uint32 i = 0; i < numSubdivisions; ++i)
+		Subdivide(meshData);
+
+	return meshData;
+}
+
+GeometryGenerator::MeshData GeometryGenerator::CreateDiamond(float width, float height, float depth, uint32 numSubdivisions)
+{
+	MeshData meshData;
+
+	// Vertex
+	Vertex v[6];
+
+	float w2 = 0.5f*width;  // x
+	float h2 = 1.0f*height; // y
+	float d2 = 0.5f*depth;  // z
+
+	v[0] = Vertex(-w2, 0.0f, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[1] = Vertex(+w2, 0.0f, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[2] = Vertex(-w2, 0.0f, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[3] = Vertex(+w2, 0.0f, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Top
+	v[4] = Vertex(0.0f, +h2, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Bottom
+	v[5] = Vertex(0.0f, -h2, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	meshData.Vertices.assign(&v[0], &v[6]);
+
+	// Index
+	uint32 i[30];
+
+	i[0] = 0; 
+	i[1] = 2; 
+	i[2] = 1;
+	i[3] = 1; 
+	i[4] = 2; 
+	i[5] = 3;
+
+	// Top
+	i[6] = 0; 
+	i[7] = 1; 
+	i[8] = 4;
+
+	i[9] = 1; 
+	i[10] = 3;
+	i[11] = 4;
+
+	i[12] = 3;
+	i[13] = 2; 
+	i[14] = 4;
+
+	i[15] = 2;
+	i[16] = 0; 
+	i[17] = 4;
+
+	// Bot
+	i[18] = 0; 
+	i[19] = 1; 
+	i[20] = 5;
+
+	i[21] = 1; 
+	i[22] = 3; 
+	i[23] = 5;
+
+	i[24] = 3; 
+	i[25] = 2; 
+	i[26] = 5;
+
+	i[27] = 2; 
+	i[28] = 0; 
+	i[29] = 5;
+
+	meshData.Indices32.assign(&i[0], &i[30]);
+
+	numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+
+	for (uint32 i = 0; i < numSubdivisions; ++i)
+		Subdivide(meshData);
+
+	return meshData;
+}
+
+GeometryGenerator::MeshData GeometryGenerator::CreateTriangularPrism(float width, float height, float depth, uint32 numSubdivisions)
+{
+	MeshData meshData;
+
+	// Vertex
+	Vertex v[6];
+
+	float w2 = 0.5f*width;  // x
+	float h2 = 0.5f*height; // y
+	float d2 = 0.5f*depth;  // z
+
+	// Bottom
+	v[0] = Vertex(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[1] = Vertex(+w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[2] = Vertex(-0.0f, -h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Top
+	v[3] = Vertex(-w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[4] = Vertex(+w2, +h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[5] = Vertex(-0.0f, +h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	meshData.Vertices.assign(&v[0], &v[6]);
+	
+	// Index
+	uint32 i[24];
+
+	// Bottom
+	i[0] = 0; 
+	i[1] = 1; 
+	i[2] = 2;
+
+	// Top
+	i[3] = 5; 
+	i[4] = 4; 
+	i[5] = 3;
+
+	// Front
+	i[6] = 4; 
+	i[7] = 1; 
+	i[8] = 0;
+	i[9] = 0; 
+	i[10] = 3; 
+	i[11] = 4;
+
+	// R
+	i[12] = 5; 
+	i[13] = 2; 
+	i[14] = 1;
+	i[15] = 1;
+	i[16] = 4; 
+	i[17] = 5;
+
+	// L
+	i[18] = 0; 
+	i[19] = 2; 
+	i[20] = 5;
+	i[21] = 5;
+	i[22] = 3; 
+	i[23] = 0;
+
+	meshData.Indices32.assign(&i[0], &i[24]);
+
+	numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+
+	for (uint32 i = 0; i < numSubdivisions; ++i)
+		Subdivide(meshData);
+
+	return meshData;
+}
+
+GeometryGenerator::MeshData GeometryGenerator::CreateWedge(float width, float height, float depth, uint32 numSubdivisions)
+{
+	MeshData meshData;
+
+	// Vertex
+	Vertex v[6];
+
+	float w2 = 0.5f*width;  // x
+	float h2 = 0.5f*height; // y
+	float d2 = 0.5f*depth;  // z
+
+	// Right
+	v[0] = Vertex(+w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[1] = Vertex(+w2, -h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[2] = Vertex(+w2, +h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Left
+	v[3] = Vertex(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[4] = Vertex(-w2, -h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[5] = Vertex(-w2, +h2, +d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+	meshData.Vertices.assign(&v[0], &v[6]);
+
+	// Index
+	uint32 i[24];
+	
+	// R
+	i[0] = 0; 
+	i[1] = 1; 
+	i[2] = 2;
+
+	// L
+	i[3] = 5; 
+	i[4] = 4; 
+	i[5] = 3;
+
+	// Bot
+	i[6] = 4; 
+	i[7] = 1; 
+	i[8] = 0;
+	i[9] = 0; 
+	i[10] = 3; 
+	i[11] = 4;
+
+	// Back
+	i[12] = 5; 
+	i[13] = 2; 
+	i[14] = 1;
+	i[15] = 1; 
+	i[16] = 4; 
+	i[17] = 5;
+
+	// Front
+	i[18] = 0; 
+	i[19] = 2; 
+	i[20] = 5;
+	i[21] = 5; 
+	i[22] = 3; 
+	i[23] = 0;
+
+	meshData.Indices32.assign(&i[0], &i[24]);
+
+	numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+
+	for (uint32 i = 0; i < numSubdivisions; ++i)
+		Subdivide(meshData);
+
+	return meshData;
+}
+
+
+GeometryGenerator::MeshData GeometryGenerator::CreateCone(float bottomRadius, float height, uint32 sliceCount, uint32 stackCount)
+{
+	MeshData meshData;
+	
+	// Stacks
+	float stackHeight = height / stackCount;
+
+	// Amount to increment radius as we move up each stack level from bottom to top.
+	float radiusStep = (0.0f - bottomRadius) / stackCount;
+
+	uint32 ringCount = stackCount + 1;
+
+	// Compute vertices for each stack ring starting at the bottom and moving up.
+	for (uint32 i = 0; i < ringCount; ++i)
+	{
+		float y = -0.5f*height + i * stackHeight;
+		float r = bottomRadius + i * radiusStep;
+
+		// vertices of ring
+		float dTheta = 2.0f*XM_PI / sliceCount;
+		for (uint32 j = 0; j <= sliceCount; ++j)
+		{
+			Vertex vertex;
+
+			float c = cosf(j*dTheta);
+			float s = sinf(j*dTheta);
+
+			vertex.Position = XMFLOAT3(r*c, y, r*s);
+
+			vertex.TexC.x = (float)j / sliceCount;
+			vertex.TexC.y = 1.0f - (float)i / stackCount;
+
+
+
+			// This is unit length.
+			vertex.TangentU = XMFLOAT3(-s, 0.0f, c);
+
+			float dr = bottomRadius - 0.0f;
+			XMFLOAT3 bitangent(dr*c, -height, dr*s);
+
+			XMVECTOR T = XMLoadFloat3(&vertex.TangentU);
+			XMVECTOR B = XMLoadFloat3(&bitangent);
+			XMVECTOR N = XMVector3Normalize(XMVector3Cross(T, B));
+			XMStoreFloat3(&vertex.Normal, N);
+
+			meshData.Vertices.push_back(vertex);
+		}
+	}
+
+	uint32 ringVertexCount = sliceCount + 1;
+
+	// Compute indices for each stack.
+	for (uint32 i = 0; i < stackCount; ++i)
+	{
+		for (uint32 j = 0; j < sliceCount; ++j)
+		{
+			meshData.Indices32.push_back(i*ringVertexCount + j);
+			meshData.Indices32.push_back((i + 1)*ringVertexCount + j);
+			meshData.Indices32.push_back((i + 1)*ringVertexCount + j + 1);
+
+			meshData.Indices32.push_back(i*ringVertexCount + j);
+			meshData.Indices32.push_back((i + 1)*ringVertexCount + j + 1);
+			meshData.Indices32.push_back(i*ringVertexCount + j + 1);
+		}
+	}
+
+	BuildCylinderTopCap(bottomRadius, 0.0f, height, sliceCount, stackCount, meshData);
+	BuildCylinderBottomCap(bottomRadius, 0.0f, height, sliceCount, stackCount, meshData);
+
+	return meshData;
+}

@@ -1,6 +1,18 @@
-﻿  winmain.cpp
-c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(509): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
-c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(510): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
-c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(511): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
-c:\users\crizz\desktop\gbc04\3111\week3\week3\winmain.cpp(512): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
-  Week3.vcxproj -> C:\Users\crizz\Desktop\GBC04\3111\Week3\Debug\Week3.exe
+﻿  compilation object save succeeded; see C:\Users\101193350\Desktop\GBC04\3111\A1\Debug\color.cso
+  Camera.cpp
+  d3dApp.cpp
+  d3dUtil.cpp
+c:\users\101193350\desktop\gbc04\3111\common\d3dutil.cpp(30): warning C4244: 'argument': conversion from 'std::streamoff' to 'SIZE_T', possible loss of data
+c:\users\101193350\desktop\gbc04\3111\common\d3dutil.cpp(70): warning C4244: '=': conversion from 'UINT64' to 'LONG_PTR', possible loss of data
+  DDSTextureLoader.cpp
+  GameTimer.cpp
+  GeometryGenerator.cpp
+  MathHelper.cpp
+  FrameResource.cpp
+  winmain.cpp
+c:\users\101193350\desktop\gbc04\3111\a1\week3\winmain.cpp(509): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
+c:\users\101193350\desktop\gbc04\3111\a1\week3\winmain.cpp(510): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
+c:\users\101193350\desktop\gbc04\3111\a1\week3\winmain.cpp(511): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
+c:\users\101193350\desktop\gbc04\3111\a1\week3\winmain.cpp(512): warning C4244: 'argument': conversion from 'float' to 'GeometryGenerator::uint32', possible loss of data
+  Generating Code...
+  Week3.vcxproj -> C:\Users\101193350\Desktop\GBC04\3111\A1\Debug\Week3.exe

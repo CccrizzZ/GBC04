@@ -9,8 +9,8 @@ namespace Reality
 	public:
 		ParticleContactResolutionSystem();
 		void Update(float deltaTime);
-		int positionIterations = 2;
-		int velocityIterations = 2;
+		int positionIterations = 1;
+		int velocityIterations = 1;
 	private:
 		float CalculateSeparationVelocity(ParticleContactEvent& contact);
 		void ResolveVelocity(ParticleContactEvent& contact, float deltaTime);

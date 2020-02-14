@@ -35,7 +35,7 @@ namespace Reality
 						0,
 						normal,
 						penetration
-						);
+					);
 				}
 
 				if (length < rod.rodLength)
@@ -46,10 +46,10 @@ namespace Reality
 					getWorld().getEventManager().emitEvent<ParticleContactEvent>(
 						rod.entityA,
 						rod.entityB,
-						1,
+						0,
 						normal,
 						penetration
-						);
+					);
 				}
 
 				getWorld().data.renderUtil->DrawLine(

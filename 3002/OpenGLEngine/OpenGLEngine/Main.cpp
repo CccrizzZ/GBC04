@@ -322,11 +322,20 @@ void MakeABunchaCablesAndRods(ECSWorld & world)
 	auto ePivot = world.createEntity();
 	ePivot.addComponent<TransformComponent>(Vector3(3, 10, 0));
 
+	auto ePivot2 = world.createEntity();
+	ePivot2.addComponent<TransformComponent>(Vector3(10, 10, 0));
+
+	auto ePivot3 = world.createEntity();
+	ePivot3.addComponent<TransformComponent>(Vector3(10, 10, 18));
+
+	auto ePivot4 = world.createEntity();
+	ePivot4.addComponent<TransformComponent>(Vector3(3, 10, 18));
+
 	auto e1 = world.createEntity();
 	e1.addComponent<TransformComponent>(Vector3(0, 10, 0));
 	e1.addComponent<ParticleComponent>();
 	e1.addComponent<ForceAccumulatorComponent>();
-	e1.addComponent<GravityForceComponent>();
+	e1.addComponent<GravityForceComponent>(0.0f);
 	e1.addComponent<ParticleSphereComponent>();
 
 	auto e2 = world.createEntity();
@@ -351,7 +360,16 @@ void MakeABunchaCablesAndRods(ECSWorld & world)
 	e4.addComponent<ParticleSphereComponent>();
 
 	auto cable = world.createEntity();
-	cable.addComponent<CableComponent>(ePivot, e1, 10, 2);
+	cable.addComponent<CableComponent>(ePivot, e1, 1, 1);
+
+	auto cable2 = world.createEntity();
+	cable2.addComponent<CableComponent>(ePivot2, e2, 1, 1);
+
+	auto cable3 = world.createEntity();
+	cable3.addComponent<CableComponent>(ePivot3, e3, 1, 1);
+
+	auto cable4 = world.createEntity();
+	cable4.addComponent<CableComponent>(ePivot4, e4, 1, 1);
 
 	auto rod1 = world.createEntity();
 	rod1.addComponent<RodComponent>(e1, e2, 5 * pow(2, 0.5f));

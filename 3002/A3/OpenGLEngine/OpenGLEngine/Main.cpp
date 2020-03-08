@@ -23,6 +23,14 @@
 #include "DynamicSpotLightSystem.h"
 #include "BuoyancyForceSystem.h"
 #include "EntityControllerSystem.h"
+#include "RigidBodyComponent.h"
+#include "RigidBodySystem.h"
+#include "RigidbodyGravityForceGeneratorSystem.h"
+#include "SphereColliderSystem.h"
+#include "ContactGenerationSystem.h"
+#include "ContactResolutionSystem.h"
+#include "BoxColliderSystem.h"
+
 #include <string>
 #include <stdlib.h>     
 #include <time.h>      
@@ -95,6 +103,16 @@ int main()
 	world.getSystemManager().addSystem<BuoyancyForceSystem>();
 	world.getSystemManager().addSystem<EntityControllerSystem>();
 
+	// Rigidbody Physics
+	rp3d::CollisionWorld rp3dWorld;
+	world.getSystemManager().addSystem<RigidBodySystem>(rp3dWorld);
+	world.getSystemManager().addSystem<ContactGenerationSystem>(rp3dWorld);
+	world.getSystemManager().addSystem<ContactResolutionSystem>(rp3dWorld);
+	world.getSystemManager().addSystem<SphereColliderSystem>(rp3dWorld);
+	world.getSystemManager().addSystem<BoxColliderSystem>(rp3dWorld);
+	world.getSystemManager().addSystem<RigidbodyGravityForceGeneratorSystem>();
+
+
 
 	float time = glfwGetTime();
 	float stepTime = glfwGetTime();
@@ -161,8 +179,10 @@ int main()
 		world.getSystemManager().getSystem<BuoyancyForceSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<EntityControllerSystem>().Update(fixedDeltaTime);
 
+		// Rigid Body System
+		world.getSystemManager().getSystem<RigidBodySystem>().Update(fixedDeltaTime);
 
-
+		world.getSystemManager().getSystem<RigidbodyGravityForceGeneratorSystem>().Update(fixedDeltaTime);
 
 		// Force Accumulator
 		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
@@ -472,24 +492,7 @@ void MakeABunchaObjectsV2(ECSWorld & world)
 	flightV4.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
 }
 
-void MakeABoat(ECSWorld & world)
-{
-	auto boat = world.createEntity();
-	boat.tag("boat");
 
-	// (position, scale, rotation)
-	boat.addComponent<TransformComponent>(Vector3(0, 0, 300), Vector3(0.5, 0.5, 0.5), Vector3(270, -180, 0));
-	boat.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
-	boat.addComponent<ParticleComponent>(Vector3(0, 0, 0));
-	boat.addComponent<ForceAccumulatorComponent>();
-	// boat.addComponent<GravityForceComponent>();
-	// boat.addComponent<FPSControlComponent>();
-
-	// B force = x * (0,1,0)
-	boat.addComponent<BuoyancyForceComponent>(1);
-	boat.addComponent<EntityController>();
-
-}
 
 
 void MakeABunchaCablesAndRods(ECSWorld & world)
@@ -580,6 +583,26 @@ void MakeABunchaCablesAndRods(ECSWorld & world)
 	//	auto rod = world.createEntity();
 	//	rod.addComponent<RodComponent>(e1, e2, RANDOM_FLOAT(6, 10));
 	//}
+}
+
+void MakeABoat(ECSWorld & world)
+{
+	auto boat = world.createEntity();
+	boat.tag("boat");
+
+	// (position, scale, rotation)
+	boat.addComponent<TransformComponent>(Vector3(0, 0, 300), Vector3(0.5, 0.5, 0.5), Vector3(270, -180, 0));
+	boat.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
+	boat.addComponent<ParticleComponent>(Vector3(0, 0, 0));
+	boat.addComponent<ForceAccumulatorComponent>();
+	// boat.addComponent<GravityForceComponent>();
+	// boat.addComponent<FPSControlComponent>();
+
+
+	// gravity = x * (0,1,0)
+	boat.addComponent<BuoyancyForceComponent>(1);
+	boat.addComponent<EntityController>();
+	boat.addComponent<RigidBodyComponent>();
 }
 
 void SetupLights(ECSWorld& world)

@@ -43,9 +43,6 @@
     <Filter Include="Input">
       <UniqueIdentifier>{09a9940b-c17f-43c0-becf-d8da8efa3d30}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Physics\Rigidbody">
-      <UniqueIdentifier>{3f5a8043-c367-47f5-bbe1-005323d21b00}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Physics\Particles\ForceGenerators">
       <UniqueIdentifier>{3b57134f-d90e-46bd-8888-c0777df6a173}</UniqueIdentifier>
     </Filter>
@@ -78,6 +75,9 @@
     </Filter>
     <Filter Include="Physics\EntityController">
       <UniqueIdentifier>{57538f12-ba64-40b5-ac79-adf1e6106201}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics\RigidBodySystem">
+      <UniqueIdentifier>{228c1461-493e-4062-a106-1c5bc872f557}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -203,6 +203,24 @@
     </ClCompile>
     <ClCompile Include="EntityControllerSystem.cpp">
       <Filter>Physics\EntityController</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidbodyGravityForceGeneratorSystem.cpp">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidBodySystem.cpp">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxColliderSystem.cpp">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClCompile>
+    <ClCompile Include="ContactGenerationSystem.cpp">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClCompile>
+    <ClCompile Include="ContactResolutionSystem.cpp">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClCompile>
+    <ClCompile Include="SphereColliderSystem.cpp">
+      <Filter>Physics\RigidBodySystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -421,6 +439,45 @@
     </ClInclude>
     <ClInclude Include="EntityController.h">
       <Filter>Physics\EntityController</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBodyComponent.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBodyData.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidbodyGravityForceGeneratorSystem.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBodySystem.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxColliderComponent.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxColliderSystem.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ContactGenerationSystem.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ContactResolutionSystem.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereColliderComponent.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereColliderSystem.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereComponent.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ContactInfoReciever.h">
+      <Filter>Physics\RigidBodySystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ContactEvent.h">
+      <Filter>Physics\RigidBodySystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

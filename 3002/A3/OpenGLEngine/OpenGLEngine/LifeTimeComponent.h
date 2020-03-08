@@ -5,13 +5,14 @@ namespace Reality
 {
 	struct LifeTimeComponent
 	{
-		LifeTimeComponent(float _maxTime = 5, Color _color = Color::Green)
-			:maxTime(_maxTime), timer(0), color(_color)
+		LifeTimeComponent(float _maxTime = 10)
+			:maxTime(_maxTime), timer(0), startSize(RANDOM_FLOAT(1.0f, 3.0f)), size(0)
 		{
 
 		}
 		float maxTime;
 		float timer;
-		Color color;
+		float startSize;
+		float size;
 	};
 }

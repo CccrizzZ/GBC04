@@ -1,7 +1,7 @@
 #pragma once
 #include "ECSConfig.h"
-#include "TransformComponentV2.h"
 #include "LifeTimeComponent.h"
+#include "TransformComponentV2.h"
 
 namespace Reality
 {

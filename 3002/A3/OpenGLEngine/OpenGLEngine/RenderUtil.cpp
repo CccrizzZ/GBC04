@@ -576,10 +576,6 @@ namespace Reality
 		glm::vec3 position = (start + end) * 0.5f;
 		float scale = glm::length(start - end);
 		glm::vec3 axis = glm::cross(glm::vec3(1, 0, 0), end - start);
-		if (glm::length(axis) < 0.001f)
-		{
-			axis = glm::vec3(1, 0, 0);
-		}
 		axis = glm::normalize(axis);
 		float proj = glm::dot(end - start, glm::vec3(1, 0, 0));
 		glm::mat4 model = glm::mat4(1.0f);

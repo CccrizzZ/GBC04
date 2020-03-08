@@ -6,10 +6,10 @@ namespace Reality
 {
 	struct TransformComponentV2
 	{
-		TransformComponentV2(Vector3 _position = Vector3(0, 0, 0), Vector3 _scale = Vector3(1, 1, 1), Vector3 _eulerAngles = Vector3(0, 0, 0)) :
+		TransformComponentV2(Vector3 _position = Vector3(0, 0, 0), Vector3 _scale = Vector3(1, 1, 1), Vector3 _eulerAngles = Vector3(0.0f, 0.0f, 0.0f)) :
 			position(_position), scale(_scale)
 		{
-			SetEulerAngles(_eulerAngles);
+			SetRotation(_eulerAngles);
 		}
 	private:
 		Vector3 position;
@@ -20,29 +20,26 @@ namespace Reality
 		Mat4 translationMatrix;
 		Mat4 unScaledTransformationMatrix;
 		Mat4 transformationMatrix;
-		bool dirty = false;
+		bool dirty = true;
 
 		inline void UpdateMatrices()
 		{
-			scaleMatrix = glm::scale(Mat4(1.0f), scale);
+			scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
+			translationMatrix = glm::translate(glm::mat4(1.0f), position);
 			rotationMatrix = glm::toMat4(orientation);
-			translationMatrix = glm::translate(Mat4(1.0f), position);
 			unScaledTransformationMatrix = translationMatrix * rotationMatrix;
 			transformationMatrix = unScaledTransformationMatrix * scaleMatrix;
 			dirty = false;
 		}
-	public: 
 
+	public:
 		inline void SetPosition(const Vector3& _position)
 		{
 			position = _position;
 			dirty = true;
 		}
 
-		inline const Vector3& GetPosition()
-		{
-			return position;
-		}
+		inline Vector3 GetPosition() { return position; }
 
 		inline void SetScale(const Vector3& _scale)
 		{
@@ -50,10 +47,7 @@ namespace Reality
 			dirty = true;
 		}
 
-		inline const Vector3& GetScale()
-		{
-			return scale;
-		}
+		inline Vector3 GetScale() { return scale; }
 
 		inline void SetOrientation(const Quaternion& _orientation)
 		{
@@ -61,25 +55,35 @@ namespace Reality
 			dirty = true;
 		}
 
-		inline const Quaternion& GetOrientation()
-		{
-			return orientation;
-		}
+		inline Quaternion GetOrientation() { return orientation; }
 
-		inline void SetEulerAngles(const Vector3& _eulerAngles)
+		// Euler angles in degrees
+		inline void SetRotation(Vector3 eulerAngles)
 		{
-			Vector3 radAngle = Vector3(glm::radians(_eulerAngles.x),
-				glm::radians(_eulerAngles.y), glm::radians(_eulerAngles.z));
-			orientation = glm::quat(radAngle);
+			glm::vec3 rotationInRads = glm::vec3(glm::radians(eulerAngles.x), 
+				glm::radians(eulerAngles.y), glm::radians(eulerAngles.z));
+			orientation = glm::quat(rotationInRads);
 			dirty = true;
 		}
 
-		inline const Vector3& GetEulerAngles()
+		inline Vector3 GetRotation() { return glm::eulerAngles(orientation); }
+
+		inline Vector3 Up()
 		{
-			return glm::eulerAngles(orientation);
+			return orientation * Vector3(0.0f, 1.0f, 0.0f);
 		}
 
-		inline const Mat4& GetScaleMatrix()
+		inline Vector3 Right()
+		{
+			return orientation * Vector3(1.0f, 0.0f, 0.0f);
+		}
+
+		inline Vector3 Forward()
+		{
+			return orientation * Vector3(0.0f, 0.0f, 1.0f);
+		}
+
+		inline Mat4 GetScaleMatrix()
 		{
 			if (dirty)
 			{
@@ -88,7 +92,7 @@ namespace Reality
 			return scaleMatrix;
 		}
 
-		inline const Mat4& GetRotationMatrix()
+		inline Mat4 GetRotationMatrix()
 		{
 			if (dirty)
 			{
@@ -97,25 +101,7 @@ namespace Reality
 			return rotationMatrix;
 		}
 
-		inline const Mat4& GetTranslationMatrix()
-		{
-			if (dirty)
-			{
-				UpdateMatrices();
-			}
-			return translationMatrix;
-		}
-
-		inline const Mat4& GetUnScaledTransformationMatrix()
-		{
-			if (dirty)
-			{
-				UpdateMatrices();
-			}
-			return unScaledTransformationMatrix;
-		}
-
-		inline const Mat4& GetTransformationMatrix()
+		inline Mat4 GetTranslationMatrix()
 		{
 			if (dirty)
 			{
@@ -124,48 +110,48 @@ namespace Reality
 			return transformationMatrix;
 		}
 
-		inline const Vector3& Right()
+		inline Mat4 GetUnScaledTransformationMatrix()
 		{
-			return orientation * Vector3(1, 0, 0);
+			if (dirty)
+			{
+				UpdateMatrices();
+			}
+			return unScaledTransformationMatrix;
 		}
 
-		inline const Vector3& Up()
+		inline Mat4 GetTransformationMatrix()
 		{
-			return orientation * Vector3(0, 1, 0);
+			if (dirty)
+			{
+				UpdateMatrices();
+			}
+			return transformationMatrix;
 		}
 
-		inline const Vector3& Forward()
+		inline Vector3 WorldToLocalPosition(Vector3 _position)
 		{
-			return orientation * Vector3(0, 0, 1);
+			return glm::inverse(GetTransformationMatrix()) * Vector4(_position, 1);
+
 		}
 
-		inline const Vector3& LocalToWorldDirection(const Vector3& _localDirection)
+		inline Vector3 LocalToWorldPosition(Vector3 _position)
 		{
-			return orientation * _localDirection;
+			return GetTransformationMatrix() * Vector4(_position, 1);
 		}
 
-		inline const Vector3& WorldToLocalDirection(const Vector3& _worldDirection)
+		//TODO : Check
+		inline Vector3 WorldToLocalDirection(Vector3 direction)
 		{
 			if (glm::length(orientation) > 0)
 			{
-				return glm::inverse(orientation) * _worldDirection;
+				return glm::inverse(orientation) * direction;
 			}
 			return Vector3(0, 0, 0);
 		}
 
-
-		inline const Vector3& LocalToWorldPosition(const Vector3& _localPosition)
+		inline Vector3 LocalToWorldDirection(Vector3 direction)
 		{
-			return transformationMatrix * Vector4(_localPosition, 1.0f);
-		}
-
-		inline const Vector3& WorldToLocalPosition(const Vector3& _worldPosition)
-		{
-			if (abs(glm::determinant(transformationMatrix)) > 0)
-			{
-				return glm::inverse(transformationMatrix) * Vector4(_worldPosition, 1.0f);
-			}
-			return Vector3(0, 0, 0);
+			return orientation * direction;
 		}
 	};
 }

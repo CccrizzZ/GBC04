@@ -1,6 +1,6 @@
 #pragma once
 #include "ECSConfig.h"
-#include "ParticleContactEvent.h"
+#include "ParticleContactComponent.h"
 
 namespace Reality
 {
@@ -9,12 +9,13 @@ namespace Reality
 	public:
 		ParticleContactResolutionSystem();
 		void Update(float deltaTime);
+		unsigned int iterations = 1;
 	private:
-		float CalculateSeparationVelocity(ParticleContactEvent& contact);
-		float CalculateActualPenetration(ParticleContactEvent& contact);
-		void ResolveVelocity(ParticleContactEvent& contact, float deltaTime);
-		void ResolveInterPenetration(ParticleContactEvent& contact);
-		int velocityIterations = 4;
-		int positionIterations = 8;
+		float CalculateSeparatingVelocity(ParticleContactComponent& contact);
+		void ResolveVelocity(ParticleContactComponent& contact, float deltaTime);
+		void ResolveInterpenetration(ParticleContactComponent& contact);
+		void UpdateInterpenetration(ParticleContactComponent& bestContact, ParticleContactComponent& contact);
+		unsigned int iterationsUsed = 0;
 	};
 }
+

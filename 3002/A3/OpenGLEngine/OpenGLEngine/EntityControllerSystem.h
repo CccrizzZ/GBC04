@@ -9,6 +9,7 @@ namespace Reality
 	public:
 		EntityControllerSystem();
 		void Update(float deltaTime);
+		bool flag;
 	};
 }
 

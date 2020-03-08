@@ -29,43 +29,125 @@ namespace Reality
 
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 			{
-				eTransform.position -= eTransform.Up();
-				// camera.ProcessKeyboard(FORWARD, fpsControl.forwardSpeed * deltaTime);
+				
+				eTransform.position -= eTransform.Up() * (deltaTime * 100);
 
+				if (eTransform.eulerAngles.x > 260)
+				{
+					eTransform.eulerAngles.x -= 0.5;
+					
+
+				}
+				flag = false;
+			} 
+
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
+			{
+				if (eTransform.eulerAngles.x < 269)
+				{
+					eTransform.eulerAngles.x += 0.5;
+					flag = false;
+				}
+				else
+				{
+					flag = true;
+				}
+				
+				
 			}
 
 			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 			{
-				eTransform.position += eTransform.Up();
-				// camera.ProcessKeyboard(BACKWARD, fpsControl.forwardSpeed  * deltaTime);
+				eTransform.position += eTransform.Up() * (deltaTime * 100);
+				if (eTransform.eulerAngles.x < 280)
+				{
+					eTransform.eulerAngles.x += 0.5;
+
+				}
+				flag = false;
+
+			}
+
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE)
+			{
+				if (eTransform.eulerAngles.x > 269)
+				{
+					eTransform.eulerAngles.x -= 0.5;
+					flag = false;
+				}
+				else
+				{
+					flag = true;
+				}
+
 			}
 
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 			{
-				eTransform.position -= eTransform.Right();
-				// camera.ProcessKeyboard(LEFT, fpsControl.sidewaysSpeed * deltaTime);
+				eTransform.eulerAngles.y += 0.5;
 			}
 
 			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 			{
-				eTransform.position += eTransform.Right();
-				// camera.ProcessKeyboard(RIGHT, fpsControl.sidewaysSpeed * deltaTime);
+				eTransform.eulerAngles.y -= 0.5;
+
 			}
 
 			// Look
 			auto mouseMoveEvents = getWorld().getEventManager().getEvents<MouseMoveEvent>();
 			for (auto event : mouseMoveEvents)
 			{
+				// move boat eularangle with mouse
+				eTransform.eulerAngles.y -= event.deltaX * 0.5;
 
-					eTransform.eulerAngles.x += event.deltaY*0.5;
+				// // look down
+				// if (eTransform.eulerAngles.x > 0)
+				// {
+				// 	eTransform.eulerAngles.x = 0;
+				// 	break;
+				// }
 
-	
-					eTransform.eulerAngles.y += event.deltaX*0.5;
+				// // look up
+				// if (eTransform.eulerAngles.x < -180)
+				// {
+				// 	eTransform.eulerAngles.x = -180;
+				// 	break;
+				// }
 
-	
-
-				camera.ProcessMouseMovement(event.deltaX, event.deltaY);
+				// eTransform.eulerAngles.x -= event.deltaY*0.5;				
 			}
+
+
+
+
+
+
+
+
+			// Attach camera to boat/plane
+			// if "W" is pressed dont snap camera Y to boat
+			if (flag == true)
+			{
+				camera.Front = -(eTransform.Up());
+			}
+			else
+			{
+				camera.Front.x = -(eTransform.Up().x);
+				camera.Front.z = -(eTransform.Up().z);
+
+			}
+			
+			
+			// Vector3 deltaD = eTransform.position - camera.Position;
+			// float tempPitch = 1 / tan(deltaD.y / deltaD.z);
+
+			// camera.Pitch += tempPitch;
+
+			camera.Right = -(eTransform.Right());
+			camera.Up = (eTransform.Forward());
+			camera.Position.x = eTransform.position.x;
+			camera.Position.y = eTransform.position.y + 40;
+			camera.Position.z = eTransform.position.z + 200;
 		}
 	}
 }

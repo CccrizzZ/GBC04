@@ -161,15 +161,8 @@ int main()
 		world.getSystemManager().getSystem<BuoyancyForceSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<EntityControllerSystem>().Update(fixedDeltaTime);
 
-		// world.data.renderUtil->camera.Position.x = world.getEntity("boat").getComponent<TransformComponent>().position.x;
-		// world.data.renderUtil->camera.Position.z = world.getEntity("boat").getComponent<TransformComponent>().position.z+150;
-		world.data.renderUtil->camera.Position.y = world.getEntity("boat").getComponent<TransformComponent>().position.y+ 150;
 
-		// world.data.renderUtil->camera.Front = world.getEntity("boat").getComponent<TransformComponent>().Forward();
-		// world.data.renderUtil->camera.Up = world.getEntity("boat").getComponent<TransformComponent>().Up();
-		// world.data.renderUtil->camera.Right = world.getEntity("boat").getComponent<TransformComponent>().Right();
-		// world.data.renderUtil->camera.Yaw = world.getEntity("boat").getComponent<TransformComponent>().eulerAngles.y;
-		// world.data.renderUtil->camera.Pitch = world.getEntity("boat").getComponent<TransformComponent>().eulerAngles.z;
+
 
 		// Force Accumulator
 		world.getSystemManager().getSystem<ForceAccumulatorSystem>().Update(fixedDeltaTime);
@@ -457,16 +450,26 @@ void MakeARopeBridge(ECSWorld & world)
 void MakeABunchaObjectsV2(ECSWorld & world)
 {
 	auto flightV1 = world.createEntity();
-	flightV1.addComponent<TransformComponent>(Vector3(-50, 0, -50), Vector3(0.1f, 0.1f, 0.1f), Vector3(270, 0, 0));
+	flightV1.addComponent<TransformComponent>(Vector3(-200, 0, -50), Vector3(0.5f, 0.5f, 0.5f), Vector3(270, 0, 0));
 	// Add mesh
 	flightV1.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
 	flightV1.addComponent<RotateComponent>(Vector3(45, 70, -20));
 
 	auto flightV2 = world.createEntity();
-	flightV2.addComponent<TransformComponentV2>(Vector3(50, 0, -50), Vector3(0.1f, 0.1f, 0.1f), Vector3(270, 0, 0));
+	flightV2.addComponent<TransformComponentV2>(Vector3(50, 0, -50), Vector3(0.5f, 0.5f, 0.5f), Vector3(270, 0, 0));
 	// Add mesh
 	flightV2.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
 	// flightV2.addComponent<RotateComponentV2>(Vector3(45, 70, -20));
+
+	auto flightV3 = world.createEntity();
+	flightV3.addComponent<TransformComponentV2>(Vector3(300, 0, -300), Vector3(0.5f, 0.5f, 0.5f), Vector3(270, 0, 0));
+	// Add mesh
+	flightV3.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
+
+	auto flightV4 = world.createEntity();
+	flightV4.addComponent<TransformComponentV2>(Vector3(-50, -200, -300), Vector3(0.5f, 0.5f, 0.5f), Vector3(270, 0, 0));
+	// Add mesh
+	flightV4.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
 }
 
 void MakeABoat(ECSWorld & world)
@@ -475,15 +478,15 @@ void MakeABoat(ECSWorld & world)
 	boat.tag("boat");
 
 	// (position, scale, rotation)
-	boat.addComponent<TransformComponent>(Vector3(0, 0, 0), Vector3(0.1f, 0.1f, 0.1f), Vector3(270, 180, 0));
+	boat.addComponent<TransformComponent>(Vector3(0, 0, 300), Vector3(0.5, 0.5, 0.5), Vector3(270, -180, 0));
 	boat.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx");
 	boat.addComponent<ParticleComponent>(Vector3(0, 0, 0));
 	boat.addComponent<ForceAccumulatorComponent>();
-	boat.addComponent<GravityForceComponent>();
-	boat.addComponent<FPSControlComponent>();
+	// boat.addComponent<GravityForceComponent>();
+	// boat.addComponent<FPSControlComponent>();
 
 	// B force = x * (0,1,0)
-	boat.addComponent<BuoyancyForceComponent>(9);
+	boat.addComponent<BuoyancyForceComponent>(1);
 	boat.addComponent<EntityController>();
 
 }

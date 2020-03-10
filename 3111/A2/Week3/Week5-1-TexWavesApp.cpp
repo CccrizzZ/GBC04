@@ -1,5 +1,5 @@
 //***************************************************************************************
-// TreeBillboardsApp.cpp by Frank Luna (C) 2015 All Rights Reserved.
+// TexWavesApp.cpp 
 //***************************************************************************************
 
 #include "../../Common/d3dApp.h"
@@ -23,7 +23,7 @@ const int gNumFrameResources = 3;
 struct RenderItem
 {
 	RenderItem() = default;
-
+ 
     // World matrix of the shape that describes the object's local space
     // relative to the world space, which defines the position, orientation,
     // and scale of the object in the world.
@@ -44,7 +44,7 @@ struct RenderItem
 	MeshGeometry* Geo = nullptr;
 
     // Primitive topology.
-    D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
     // DrawIndexedInstanced parameters.
     UINT IndexCount = 0;
@@ -55,19 +55,16 @@ struct RenderItem
 enum class RenderLayer : int
 {
 	Opaque = 0,
-	Transparent,
-	AlphaTested,
-	AlphaTestedTreeSprites,
 	Count
 };
 
-class TreeBillboardsApp : public D3DApp
+class TexWavesApp : public D3DApp
 {
 public:
-    TreeBillboardsApp(HINSTANCE hInstance);
-    TreeBillboardsApp(const TreeBillboardsApp& rhs) = delete;
-    TreeBillboardsApp& operator=(const TreeBillboardsApp& rhs) = delete;
-    ~TreeBillboardsApp();
+    TexWavesApp(HINSTANCE hInstance);
+    TexWavesApp(const TexWavesApp& rhs) = delete;
+    TexWavesApp& operator=(const TexWavesApp& rhs) = delete;
+    ~TexWavesApp();
 
     virtual bool Initialize()override;
 
@@ -91,11 +88,10 @@ private:
 	void LoadTextures();
     void BuildRootSignature();
 	void BuildDescriptorHeaps();
-    void BuildShadersAndInputLayouts();
+    void BuildShadersAndInputLayout();
     void BuildLandGeometry();
     void BuildWavesGeometry();
 	void BuildBoxGeometry();
-	void BuildTreeSpritesGeometry();
     void BuildPSOs();
     void BuildFrameResources();
     void BuildMaterials();
@@ -125,9 +121,8 @@ private:
 	std::unordered_map<std::string, ComPtr<ID3DBlob>> mShaders;
 	std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> mPSOs;
 
-    std::vector<D3D12_INPUT_ELEMENT_DESC> mStdInputLayout;
-	std::vector<D3D12_INPUT_ELEMENT_DESC> mTreeSpriteInputLayout;
-
+    std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
+ 
     RenderItem* mWavesRitem = nullptr;
 
 	// List of all the render items.
@@ -161,7 +156,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 
     try
     {
-        TreeBillboardsApp theApp(hInstance);
+        TexWavesApp theApp(hInstance);
         if(!theApp.Initialize())
             return 0;
 
@@ -174,18 +169,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
     }
 }
 
-TreeBillboardsApp::TreeBillboardsApp(HINSTANCE hInstance)
+TexWavesApp::TexWavesApp(HINSTANCE hInstance)
     : D3DApp(hInstance)
 {
 }
 
-TreeBillboardsApp::~TreeBillboardsApp()
+TexWavesApp::~TexWavesApp()
 {
     if(md3dDevice != nullptr)
         FlushCommandQueue();
 }
 
-bool TreeBillboardsApp::Initialize()
+bool TexWavesApp::Initialize()
 {
     if(!D3DApp::Initialize())
         return false;
@@ -202,11 +197,10 @@ bool TreeBillboardsApp::Initialize()
 	LoadTextures();
     BuildRootSignature();
 	BuildDescriptorHeaps();
-    BuildShadersAndInputLayouts();
+    BuildShadersAndInputLayout();
     BuildLandGeometry();
     BuildWavesGeometry();
 	BuildBoxGeometry();
-	BuildTreeSpritesGeometry();
 	BuildMaterials();
     BuildRenderItems();
     BuildFrameResources();
@@ -223,7 +217,7 @@ bool TreeBillboardsApp::Initialize()
     return true;
 }
  
-void TreeBillboardsApp::OnResize()
+void TexWavesApp::OnResize()
 {
     D3DApp::OnResize();
 
@@ -232,7 +226,7 @@ void TreeBillboardsApp::OnResize()
     XMStoreFloat4x4(&mProj, P);
 }
 
-void TreeBillboardsApp::Update(const GameTimer& gt)
+void TexWavesApp::Update(const GameTimer& gt)
 {
     OnKeyboardInput(gt);
 	UpdateCamera(gt);
@@ -258,7 +252,7 @@ void TreeBillboardsApp::Update(const GameTimer& gt)
     UpdateWaves(gt);
 }
 
-void TreeBillboardsApp::Draw(const GameTimer& gt)
+void TexWavesApp::Draw(const GameTimer& gt)
 {
     auto cmdListAlloc = mCurrFrameResource->CmdListAlloc;
 
@@ -278,7 +272,7 @@ void TreeBillboardsApp::Draw(const GameTimer& gt)
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
     // Clear the back buffer and depth buffer.
-    mCommandList->ClearRenderTargetView(CurrentBackBufferView(), (float*)&mMainPassCB.FogColor, 0, nullptr);
+    mCommandList->ClearRenderTargetView(CurrentBackBufferView(), Colors::LightSteelBlue, 0, nullptr);
     mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
     // Specify the buffers we are going to render to.
@@ -293,15 +287,6 @@ void TreeBillboardsApp::Draw(const GameTimer& gt)
 	mCommandList->SetGraphicsRootConstantBufferView(2, passCB->GetGPUVirtualAddress());
 
     DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::Opaque]);
-
-	mCommandList->SetPipelineState(mPSOs["alphaTested"].Get());
-	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::AlphaTested]);
-
-	mCommandList->SetPipelineState(mPSOs["treeSprites"].Get());
-	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
-
-	mCommandList->SetPipelineState(mPSOs["transparent"].Get());
-	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::Transparent]);
 
     // Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
@@ -327,7 +312,7 @@ void TreeBillboardsApp::Draw(const GameTimer& gt)
     mCommandQueue->Signal(mFence.Get(), mCurrentFence);
 }
 
-void TreeBillboardsApp::OnMouseDown(WPARAM btnState, int x, int y)
+void TexWavesApp::OnMouseDown(WPARAM btnState, int x, int y)
 {
     mLastMousePos.x = x;
     mLastMousePos.y = y;
@@ -335,12 +320,12 @@ void TreeBillboardsApp::OnMouseDown(WPARAM btnState, int x, int y)
     SetCapture(mhMainWnd);
 }
 
-void TreeBillboardsApp::OnMouseUp(WPARAM btnState, int x, int y)
+void TexWavesApp::OnMouseUp(WPARAM btnState, int x, int y)
 {
     ReleaseCapture();
 }
 
-void TreeBillboardsApp::OnMouseMove(WPARAM btnState, int x, int y)
+void TexWavesApp::OnMouseMove(WPARAM btnState, int x, int y)
 {
     if((btnState & MK_LBUTTON) != 0)
     {
@@ -372,11 +357,11 @@ void TreeBillboardsApp::OnMouseMove(WPARAM btnState, int x, int y)
     mLastMousePos.y = y;
 }
  
-void TreeBillboardsApp::OnKeyboardInput(const GameTimer& gt)
+void TexWavesApp::OnKeyboardInput(const GameTimer& gt)
 {
 }
  
-void TreeBillboardsApp::UpdateCamera(const GameTimer& gt)
+void TexWavesApp::UpdateCamera(const GameTimer& gt)
 {
 	// Convert Spherical to Cartesian coordinates.
 	mEyePos.x = mRadius*sinf(mPhi)*cosf(mTheta);
@@ -392,7 +377,7 @@ void TreeBillboardsApp::UpdateCamera(const GameTimer& gt)
 	XMStoreFloat4x4(&mView, view);
 }
 
-void TreeBillboardsApp::AnimateMaterials(const GameTimer& gt)
+void TexWavesApp::AnimateMaterials(const GameTimer& gt)
 {
 	// Scroll the water material texture coordinates.
 	auto waterMat = mMaterials["water"].get();
@@ -416,7 +401,7 @@ void TreeBillboardsApp::AnimateMaterials(const GameTimer& gt)
 	waterMat->NumFramesDirty = gNumFrameResources;
 }
 
-void TreeBillboardsApp::UpdateObjectCBs(const GameTimer& gt)
+void TexWavesApp::UpdateObjectCBs(const GameTimer& gt)
 {
 	auto currObjectCB = mCurrFrameResource->ObjectCB.get();
 	for(auto& e : mAllRitems)
@@ -440,7 +425,7 @@ void TreeBillboardsApp::UpdateObjectCBs(const GameTimer& gt)
 	}
 }
 
-void TreeBillboardsApp::UpdateMaterialCBs(const GameTimer& gt)
+void TexWavesApp::UpdateMaterialCBs(const GameTimer& gt)
 {
 	auto currMaterialCB = mCurrFrameResource->MaterialCB.get();
 	for(auto& e : mMaterials)
@@ -466,7 +451,7 @@ void TreeBillboardsApp::UpdateMaterialCBs(const GameTimer& gt)
 	}
 }
 
-void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
+void TexWavesApp::UpdateMainPassCB(const GameTimer& gt)
 {
 	XMMATRIX view = XMLoadFloat4x4(&mView);
 	XMMATRIX proj = XMLoadFloat4x4(&mProj);
@@ -491,17 +476,17 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.DeltaTime = gt.DeltaTime();
 	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
 	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[0].Strength = { 0.6f, 0.6f, 0.6f };
+	mMainPassCB.Lights[0].Strength = { 0.9f, 0.9f, 0.9f };
 	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
+	mMainPassCB.Lights[1].Strength = { 0.5f, 0.5f, 0.5f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
+	mMainPassCB.Lights[2].Strength = { 0.2f, 0.2f, 0.2f };
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
 }
 
-void TreeBillboardsApp::UpdateWaves(const GameTimer& gt)
+void TexWavesApp::UpdateWaves(const GameTimer& gt)
 {
 	// Every quarter second, generate a random wave.
 	static float t_base = 0.0f;
@@ -541,7 +526,7 @@ void TreeBillboardsApp::UpdateWaves(const GameTimer& gt)
 	mWavesRitem->Geo->VertexBufferGPU = currWavesVB->Resource();
 }
 
-void TreeBillboardsApp::LoadTextures()
+void TexWavesApp::LoadTextures()
 {
 	auto grassTex = std::make_unique<Texture>();
 	grassTex->Name = "grassTex";
@@ -559,25 +544,17 @@ void TreeBillboardsApp::LoadTextures()
 
 	auto fenceTex = std::make_unique<Texture>();
 	fenceTex->Name = "fenceTex";
-	fenceTex->Filename = L"../../Textures/WireFence.dds";
+	fenceTex->Filename = L"../../Textures/WoodCrate01.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), fenceTex->Filename.c_str(),
 		fenceTex->Resource, fenceTex->UploadHeap));
 
-	auto treeArrayTex = std::make_unique<Texture>();
-	treeArrayTex->Name = "treeArrayTex";
-	treeArrayTex->Filename = L"../../Textures/treeArray.dds";
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), treeArrayTex->Filename.c_str(),
-		treeArrayTex->Resource, treeArrayTex->UploadHeap));
-
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
-	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
 }
 
-void TreeBillboardsApp::BuildRootSignature()
+void TexWavesApp::BuildRootSignature()
 {
 	CD3DX12_DESCRIPTOR_RANGE texTable;
 	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
@@ -617,13 +594,13 @@ void TreeBillboardsApp::BuildRootSignature()
         IID_PPV_ARGS(mRootSignature.GetAddressOf())));
 }
 
-void TreeBillboardsApp::BuildDescriptorHeaps()
+void TexWavesApp::BuildDescriptorHeaps()
 {
 	//
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 4;
+	srvHeapDesc.NumDescriptors = 3;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -636,7 +613,6 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	auto grassTex = mTextures["grassTex"]->Resource;
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
-	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -657,58 +633,22 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 
 	srvDesc.Format = fenceTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
-
-	// next descriptor
-	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-
-	auto desc = treeArrayTex->GetDesc();
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Format = treeArrayTex->GetDesc().Format;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.MipLevels = -1;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.ArraySize = treeArrayTex->GetDesc().DepthOrArraySize;
-	md3dDevice->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
 }
 
-void TreeBillboardsApp::BuildShadersAndInputLayouts()
+void TexWavesApp::BuildShadersAndInputLayout()
 {
-	const D3D_SHADER_MACRO defines[] =
-	{
-		"FOG", "1",
-		NULL, NULL
-	};
-
-	const D3D_SHADER_MACRO alphaTestDefines[] =
-	{
-		"FOG", "1",
-		"ALPHA_TEST", "1",
-		NULL, NULL
-	};
-
-	mShaders["standardVS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", nullptr, "VS", "vs_5_1");
-	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", defines, "PS", "ps_5_1");
-	mShaders["alphaTestedPS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", alphaTestDefines, "PS", "ps_5_1");
+	mShaders["standardVS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", nullptr, "VS", "vs_5_0");
+	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", nullptr, "PS", "ps_5_0");
 	
-	mShaders["treeSpriteVS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "VS", "vs_5_1");
-	mShaders["treeSpriteGS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "GS", "gs_5_1");
-	mShaders["treeSpritePS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", alphaTestDefines, "PS", "ps_5_1");
-
-    mStdInputLayout =
+    mInputLayout =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
-
-	mTreeSpriteInputLayout =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "SIZE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-	};
 }
 
-void TreeBillboardsApp::BuildLandGeometry()
+void TexWavesApp::BuildLandGeometry()
 {
     GeometryGenerator geoGen;
     GeometryGenerator::MeshData grid = geoGen.CreateGrid(160.0f, 160.0f, 50, 50);
@@ -764,7 +704,7 @@ void TreeBillboardsApp::BuildLandGeometry()
 	mGeometries["landGeo"] = std::move(geo);
 }
 
-void TreeBillboardsApp::BuildWavesGeometry()
+void TexWavesApp::BuildWavesGeometry()
 {
     std::vector<std::uint16_t> indices(3 * mWaves->TriangleCount()); // 3 indices per face
 	assert(mWaves->VertexCount() < 0x0000ffff);
@@ -820,7 +760,7 @@ void TreeBillboardsApp::BuildWavesGeometry()
 	mGeometries["waterGeo"] = std::move(geo);
 }
 
-void TreeBillboardsApp::BuildBoxGeometry()
+void TexWavesApp::BuildBoxGeometry()
 {
 	GeometryGenerator geoGen;
 	GeometryGenerator::MeshData box = geoGen.CreateBox(8.0f, 8.0f, 8.0f, 3);
@@ -869,70 +809,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 	mGeometries["boxGeo"] = std::move(geo);
 }
 
-void TreeBillboardsApp::BuildTreeSpritesGeometry()
-{
-	//step5
-	struct TreeSpriteVertex
-	{
-		XMFLOAT3 Pos;
-		XMFLOAT2 Size;
-	};
-
-	static const int treeCount = 16;
-	std::array<TreeSpriteVertex, 16> vertices;
-	for(UINT i = 0; i < treeCount; ++i)
-	{
-		float x = MathHelper::RandF(-45.0f, 45.0f);
-		float z = MathHelper::RandF(-45.0f, 45.0f);
-		float y = GetHillsHeight(x, z);
-
-		// Move tree slightly above land height.
-		y += 8.0f;
-
-		vertices[i].Pos = XMFLOAT3(x, y, z);
-		vertices[i].Size = XMFLOAT2(20.0f, 20.0f);
-	}
-
-	std::array<std::uint16_t, 16> indices =
-	{
-		0, 1, 2, 3, 4, 5, 6, 7,
-		8, 9, 10, 11, 12, 13, 14, 15
-	};
-
-	const UINT vbByteSize = (UINT)vertices.size() * sizeof(TreeSpriteVertex);
-	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
-
-	auto geo = std::make_unique<MeshGeometry>();
-	geo->Name = "treeSpritesGeo";
-
-	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
-	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
-
-	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
-	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
-
-	geo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
-		mCommandList.Get(), vertices.data(), vbByteSize, geo->VertexBufferUploader);
-
-	geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
-		mCommandList.Get(), indices.data(), ibByteSize, geo->IndexBufferUploader);
-
-	geo->VertexByteStride = sizeof(TreeSpriteVertex);
-	geo->VertexBufferByteSize = vbByteSize;
-	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	geo->IndexBufferByteSize = ibByteSize;
-
-	SubmeshGeometry submesh;
-	submesh.IndexCount = (UINT)indices.size();
-	submesh.StartIndexLocation = 0;
-	submesh.BaseVertexLocation = 0;
-
-	geo->DrawArgs["points"] = submesh;
-
-	mGeometries["treeSpritesGeo"] = std::move(geo);
-}
-
-void TreeBillboardsApp::BuildPSOs()
+void TexWavesApp::BuildPSOs()
 {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
 
@@ -940,7 +817,7 @@ void TreeBillboardsApp::BuildPSOs()
 	// PSO for opaque objects.
 	//
     ZeroMemory(&opaquePsoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
-	opaquePsoDesc.InputLayout = { mStdInputLayout.data(), (UINT)mStdInputLayout.size() };
+	opaquePsoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
 	opaquePsoDesc.pRootSignature = mRootSignature.Get();
 	opaquePsoDesc.VS = 
 	{ 
@@ -959,80 +836,13 @@ void TreeBillboardsApp::BuildPSOs()
 	opaquePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	opaquePsoDesc.NumRenderTargets = 1;
 	opaquePsoDesc.RTVFormats[0] = mBackBufferFormat;
-
-	//there is abug with F2 key that is supposed to turn on the multisampling!
-//Set4xMsaaState(true);
-	//m4xMsaaState = true;
-
 	opaquePsoDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
 	opaquePsoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
 	opaquePsoDesc.DSVFormat = mDepthStencilFormat;
     ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&mPSOs["opaque"])));
-
-	//
-	// PSO for transparent objects
-	//
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC transparentPsoDesc = opaquePsoDesc;
-
-	D3D12_RENDER_TARGET_BLEND_DESC transparencyBlendDesc;
-	transparencyBlendDesc.BlendEnable = true;
-	transparencyBlendDesc.LogicOpEnable = false;
-	transparencyBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-	transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-	transparencyBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
-	transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
-	transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
-	transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
-	transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
-	transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-
-	//transparentPsoDesc.BlendState.AlphaToCoverageEnable = true;
-
-	transparentPsoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
-	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&transparentPsoDesc, IID_PPV_ARGS(&mPSOs["transparent"])));
-
-	//
-	// PSO for alpha tested objects
-	//
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC alphaTestedPsoDesc = opaquePsoDesc;
-	alphaTestedPsoDesc.PS = 
-	{ 
-		reinterpret_cast<BYTE*>(mShaders["alphaTestedPS"]->GetBufferPointer()),
-		mShaders["alphaTestedPS"]->GetBufferSize()
-	};
-	alphaTestedPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&alphaTestedPsoDesc, IID_PPV_ARGS(&mPSOs["alphaTested"])));
-
-	//
-	// PSO for tree sprites
-	//
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC treeSpritePsoDesc = opaquePsoDesc;
-	treeSpritePsoDesc.VS =
-	{
-		reinterpret_cast<BYTE*>(mShaders["treeSpriteVS"]->GetBufferPointer()),
-		mShaders["treeSpriteVS"]->GetBufferSize()
-	};
-	treeSpritePsoDesc.GS =
-	{
-		reinterpret_cast<BYTE*>(mShaders["treeSpriteGS"]->GetBufferPointer()),
-		mShaders["treeSpriteGS"]->GetBufferSize()
-	};
-	treeSpritePsoDesc.PS =
-	{
-		reinterpret_cast<BYTE*>(mShaders["treeSpritePS"]->GetBufferPointer()),
-		mShaders["treeSpritePS"]->GetBufferSize()
-	};
-	//step1
-	treeSpritePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-	treeSpritePsoDesc.InputLayout = { mTreeSpriteInputLayout.data(), (UINT)mTreeSpriteInputLayout.size() };
-	treeSpritePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-
-	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&treeSpritePsoDesc, IID_PPV_ARGS(&mPSOs["treeSprites"])));
 }
 
-void TreeBillboardsApp::BuildFrameResources()
+void TexWavesApp::BuildFrameResources()
 {
     for(int i = 0; i < gNumFrameResources; ++i)
     {
@@ -1041,7 +851,7 @@ void TreeBillboardsApp::BuildFrameResources()
     }
 }
 
-void TreeBillboardsApp::BuildMaterials()
+void TexWavesApp::BuildMaterials()
 {
 	auto grass = std::make_unique<Material>();
 	grass->Name = "grass";
@@ -1057,8 +867,8 @@ void TreeBillboardsApp::BuildMaterials()
 	water->Name = "water";
 	water->MatCBIndex = 1;
 	water->DiffuseSrvHeapIndex = 1;
-	water->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
-	water->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
+	water->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	water->FresnelR0 = XMFLOAT3(0.2f, 0.2f, 0.2f);
 	water->Roughness = 0.0f;
 
 	auto wirefence = std::make_unique<Material>();
@@ -1066,24 +876,15 @@ void TreeBillboardsApp::BuildMaterials()
 	wirefence->MatCBIndex = 2;
 	wirefence->DiffuseSrvHeapIndex = 2;
 	wirefence->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	wirefence->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	wirefence->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	wirefence->Roughness = 0.25f;
-
-	auto treeSprites = std::make_unique<Material>();
-	treeSprites->Name = "treeSprites";
-	treeSprites->MatCBIndex = 3;
-	treeSprites->DiffuseSrvHeapIndex = 3;
-	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
-	treeSprites->Roughness = 0.125f;
 
 	mMaterials["grass"] = std::move(grass);
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
-	mMaterials["treeSprites"] = std::move(treeSprites);
 }
 
-void TreeBillboardsApp::BuildRenderItems()
+void TexWavesApp::BuildRenderItems()
 {
     auto wavesRitem = std::make_unique<RenderItem>();
     wavesRitem->World = MathHelper::Identity4x4();
@@ -1096,9 +897,10 @@ void TreeBillboardsApp::BuildRenderItems()
 	wavesRitem->StartIndexLocation = wavesRitem->Geo->DrawArgs["grid"].StartIndexLocation;
 	wavesRitem->BaseVertexLocation = wavesRitem->Geo->DrawArgs["grid"].BaseVertexLocation;
 
+	//// we use mVavesRitem in updatewaves() to set the dynamic VB of the wave renderitem to the current frame VB.
     mWavesRitem = wavesRitem.get();
 
-	mRitemLayer[(int)RenderLayer::Transparent].push_back(wavesRitem.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(wavesRitem.get());
 
     auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();
@@ -1123,28 +925,14 @@ void TreeBillboardsApp::BuildRenderItems()
 	boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
 	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
 
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(boxRitem.get());
-
-	auto treeSpritesRitem = std::make_unique<RenderItem>();
-	treeSpritesRitem->World = MathHelper::Identity4x4();
-	treeSpritesRitem->ObjCBIndex = 3;
-	treeSpritesRitem->Mat = mMaterials["treeSprites"].get();
-	treeSpritesRitem->Geo = mGeometries["treeSpritesGeo"].get();
-	//step2
-	treeSpritesRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-	treeSpritesRitem->IndexCount = treeSpritesRitem->Geo->DrawArgs["points"].IndexCount;
-	treeSpritesRitem->StartIndexLocation = treeSpritesRitem->Geo->DrawArgs["points"].StartIndexLocation;
-	treeSpritesRitem->BaseVertexLocation = treeSpritesRitem->Geo->DrawArgs["points"].BaseVertexLocation;
-
-	mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites].push_back(treeSpritesRitem.get());
+	mRitemLayer[(int)RenderLayer::Opaque].push_back(boxRitem.get());
 
     mAllRitems.push_back(std::move(wavesRitem));
     mAllRitems.push_back(std::move(gridRitem));
 	mAllRitems.push_back(std::move(boxRitem));
-	mAllRitems.push_back(std::move(treeSpritesRitem));
 }
 
-void TreeBillboardsApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
+void TexWavesApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
 {
     UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
     UINT matCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(MaterialConstants));
@@ -1159,7 +947,6 @@ void TreeBillboardsApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, cons
 
         cmdList->IASetVertexBuffers(0, 1, &ri->Geo->VertexBufferView());
         cmdList->IASetIndexBuffer(&ri->Geo->IndexBufferView());
-		//step3
         cmdList->IASetPrimitiveTopology(ri->PrimitiveType);
 
 		CD3DX12_GPU_DESCRIPTOR_HANDLE tex(mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
@@ -1176,7 +963,7 @@ void TreeBillboardsApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, cons
     }
 }
 
-std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TreeBillboardsApp::GetStaticSamplers()
+std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TexWavesApp::GetStaticSamplers()
 {
 	// Applications usually only need a handful of samplers.  So just define them all up front
 	// and keep them available as part of the root signature.  
@@ -1233,12 +1020,12 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TreeBillboardsApp::GetStaticSam
 		anisotropicWrap, anisotropicClamp };
 }
 
-float TreeBillboardsApp::GetHillsHeight(float x, float z)const
+float TexWavesApp::GetHillsHeight(float x, float z)const
 {
     return 0.3f*(z*sinf(0.1f*x) + x*cosf(0.1f*z));
 }
 
-XMFLOAT3 TreeBillboardsApp::GetHillsNormal(float x, float z)const
+XMFLOAT3 TexWavesApp::GetHillsNormal(float x, float z)const
 {
     // n = (-df/dx, 1, -df/dz)
     XMFLOAT3 n(

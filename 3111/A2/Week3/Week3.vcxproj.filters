@@ -39,10 +39,10 @@
     <ClCompile Include="Waves.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="A2.cpp">
+    <ClCompile Include="FrameResource.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="FrameResource.cpp">
+    <ClCompile Include="Week5-1-TexWavesApp.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>

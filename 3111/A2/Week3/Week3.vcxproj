@@ -26,9 +26,9 @@
     <ClCompile Include="..\..\Common\GameTimer.cpp" />
     <ClCompile Include="..\..\Common\GeometryGenerator.cpp" />
     <ClCompile Include="..\..\Common\MathHelper.cpp" />
-    <ClCompile Include="A2.cpp" />
     <ClCompile Include="FrameResource.cpp" />
     <ClCompile Include="Waves.cpp" />
+    <ClCompile Include="Week5-1-TexWavesApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\Camera.h" />

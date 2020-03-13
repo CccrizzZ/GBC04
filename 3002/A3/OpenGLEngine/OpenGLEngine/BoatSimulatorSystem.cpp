@@ -20,14 +20,14 @@ namespace Reality
 			auto& eTransform = e.getComponent<TransformComponentV2>();
 			auto& boat = e.getComponent<BoatSimulatorComponent>();
 
-			rigidbody.AddForce(Vector3(0, 10, 0));
+			rigidbody.AddForce(Vector3(0, 15, 0));
 			
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 			{
-				rigidbody.AddForce(eTransform.LocalToWorldDirection(boat.propulsion+Vector3(0,i*15,0)));
+				rigidbody.AddForce(eTransform.LocalToWorldDirection(boat.propulsion+Vector3(0,i * 15,0)));
 				if (i > -15)
 				{
-					eTransform.SetRotation(Vector3(i,0,0));
+					eTransform.SetRotation(Vector3(i, eTransform.GetRotation().y, eTransform.GetRotation().z));
 					i -= 0.5;
 				}
 				
@@ -36,7 +36,7 @@ namespace Reality
 			{
 				if (i < 0)
 				{
-					eTransform.SetRotation(Vector3(i, 0, 0));
+					eTransform.SetRotation(Vector3(i, eTransform.GetRotation().y, eTransform.GetRotation().z));
 					i += 0.5;
 				}
 			}

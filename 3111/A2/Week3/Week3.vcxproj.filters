@@ -42,7 +42,7 @@
     <ClCompile Include="FrameResource.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="Week5-1-TexWavesApp.cpp">
+    <ClCompile Include="A2-Edited.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -80,5 +80,10 @@
     <ClInclude Include="FrameResource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Default.hlsl">
+      <Filter>Header Files</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

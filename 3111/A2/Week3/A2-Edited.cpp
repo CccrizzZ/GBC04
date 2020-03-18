@@ -1,5 +1,5 @@
 ﻿//***************************************************************************************
-// Week6-1-BlendApp-Transparency.cpp 
+// Week6-1-A2-Transparency.cpp 
 //0 alpha means 0 % opaque, 0.4 means 40 % opaque, and 1.0 means 100 % opaque
 //The relationship between opacity and transparency:
 //T = 1− A, where A is opacity and T is transparency
@@ -61,16 +61,17 @@ enum class RenderLayer : int
 	Opaque = 0,
 	Transparent,
 	AlphaTested,
+	AlphaTestedTreeSprites,
 	Count
 };
 
-class BlendApp : public D3DApp
+class A2 : public D3DApp
 {
 public:
-	BlendApp(HINSTANCE hInstance);
-	BlendApp(const BlendApp& rhs) = delete;
-	BlendApp& operator=(const BlendApp& rhs) = delete;
-	~BlendApp();
+	A2(HINSTANCE hInstance);
+	A2(const A2& rhs) = delete;
+	A2& operator=(const A2& rhs) = delete;
+	~A2();
 
 	virtual bool Initialize()override;
 
@@ -95,8 +96,8 @@ private:
 	void BuildRootSignature();
 	void BuildDescriptorHeaps();
 	void BuildShadersAndInputLayout();
-	void BuildLandGeometry();
 	void BuildWavesGeometry();
+	void BuildTreeSpritesGeometry();
 	void BuildBoxGeometry();
 	void BuildPSOs();
 	void BuildFrameResources();
@@ -128,7 +129,7 @@ private:
 	std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> mPSOs;
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
-
+	std::vector<D3D12_INPUT_ELEMENT_DESC> mTreeSpriteInputLayout;
 	RenderItem* mWavesRitem = nullptr;
 
 	// List of all the render items.
@@ -162,7 +163,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 
 	try
 	{
-		BlendApp theApp(hInstance);
+		A2 theApp(hInstance);
 		if (!theApp.Initialize())
 			return 0;
 
@@ -175,18 +176,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 	}
 }
 
-BlendApp::BlendApp(HINSTANCE hInstance)
+A2::A2(HINSTANCE hInstance)
 	: D3DApp(hInstance)
 {
 }
 
-BlendApp::~BlendApp()
+A2::~A2()
 {
 	if (md3dDevice != nullptr)
 		FlushCommandQueue();
 }
 
-bool BlendApp::Initialize()
+bool A2::Initialize()
 {
 	if (!D3DApp::Initialize())
 		return false;
@@ -204,9 +205,9 @@ bool BlendApp::Initialize()
 	BuildRootSignature();
 	BuildDescriptorHeaps();
 	BuildShadersAndInputLayout();
-	BuildLandGeometry();
 	BuildWavesGeometry();
 	BuildBoxGeometry();
+	BuildTreeSpritesGeometry();
 	BuildMaterials();
 	BuildRenderItems();
 	BuildFrameResources();
@@ -223,7 +224,7 @@ bool BlendApp::Initialize()
 	return true;
 }
 
-void BlendApp::OnResize()
+void A2::OnResize()
 {
 	D3DApp::OnResize();
 
@@ -232,7 +233,7 @@ void BlendApp::OnResize()
 	XMStoreFloat4x4(&mProj, P);
 }
 
-void BlendApp::Update(const GameTimer& gt)
+void A2::Update(const GameTimer& gt)
 {
 	OnKeyboardInput(gt);
 	UpdateCamera(gt);
@@ -258,7 +259,7 @@ void BlendApp::Update(const GameTimer& gt)
 	UpdateWaves(gt);
 }
 
-void BlendApp::Draw(const GameTimer& gt)
+void A2::Draw(const GameTimer& gt)
 {
 	auto cmdListAlloc = mCurrFrameResource->CmdListAlloc;
 
@@ -297,13 +298,9 @@ void BlendApp::Draw(const GameTimer& gt)
 	mCommandList->SetPipelineState(mPSOs["alphaTested"].Get());
 	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::AlphaTested]);
 
-	//when you draw, you can set the blend factor that modulate values for a pixel shader, render target, or both.
-	//You could also use the following blend factor when you set your blend to D3D12_BLEND_BLEND_FACTOR in PSO like following:
-	//transparencyBlendDesc.SrcBlend = D3D12_BLEND_BLEND_FACTOR;
-	//transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_BLEND_FACTOR;
 
-	//float blendFactor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
-	//mCommandList->OMSetBlendFactor(blendFactor);
+	mCommandList->SetPipelineState(mPSOs["treeSprites"].Get());
+	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
 
 	mCommandList->SetPipelineState(mPSOs["transparent"].Get());
 	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)RenderLayer::Transparent]);
@@ -333,7 +330,7 @@ void BlendApp::Draw(const GameTimer& gt)
 	mCommandQueue->Signal(mFence.Get(), mCurrentFence);
 }
 
-void BlendApp::OnMouseDown(WPARAM btnState, int x, int y)
+void A2::OnMouseDown(WPARAM btnState, int x, int y)
 {
 	mLastMousePos.x = x;
 	mLastMousePos.y = y;
@@ -341,12 +338,12 @@ void BlendApp::OnMouseDown(WPARAM btnState, int x, int y)
 	SetCapture(mhMainWnd);
 }
 
-void BlendApp::OnMouseUp(WPARAM btnState, int x, int y)
+void A2::OnMouseUp(WPARAM btnState, int x, int y)
 {
 	ReleaseCapture();
 }
 
-void BlendApp::OnMouseMove(WPARAM btnState, int x, int y)
+void A2::OnMouseMove(WPARAM btnState, int x, int y)
 {
 	if ((btnState & MK_LBUTTON) != 0)
 	{
@@ -378,11 +375,11 @@ void BlendApp::OnMouseMove(WPARAM btnState, int x, int y)
 	mLastMousePos.y = y;
 }
 
-void BlendApp::OnKeyboardInput(const GameTimer& gt)
+void A2::OnKeyboardInput(const GameTimer& gt)
 {
 }
 
-void BlendApp::UpdateCamera(const GameTimer& gt)
+void A2::UpdateCamera(const GameTimer& gt)
 {
 	// Convert Spherical to Cartesian coordinates.
 	mEyePos.x = mRadius * sinf(mPhi)*cosf(mTheta);
@@ -398,7 +395,7 @@ void BlendApp::UpdateCamera(const GameTimer& gt)
 	XMStoreFloat4x4(&mView, view);
 }
 
-void BlendApp::AnimateMaterials(const GameTimer& gt)
+void A2::AnimateMaterials(const GameTimer& gt)
 {
 	// Scroll the water material texture coordinates.
 	auto waterMat = mMaterials["water"].get();
@@ -422,7 +419,7 @@ void BlendApp::AnimateMaterials(const GameTimer& gt)
 	waterMat->NumFramesDirty = gNumFrameResources;
 }
 
-void BlendApp::UpdateObjectCBs(const GameTimer& gt)
+void A2::UpdateObjectCBs(const GameTimer& gt)
 {
 	auto currObjectCB = mCurrFrameResource->ObjectCB.get();
 	for (auto& e : mAllRitems)
@@ -446,7 +443,7 @@ void BlendApp::UpdateObjectCBs(const GameTimer& gt)
 	}
 }
 
-void BlendApp::UpdateMaterialCBs(const GameTimer& gt)
+void A2::UpdateMaterialCBs(const GameTimer& gt)
 {
 	auto currMaterialCB = mCurrFrameResource->MaterialCB.get();
 	for (auto& e : mMaterials)
@@ -472,7 +469,7 @@ void BlendApp::UpdateMaterialCBs(const GameTimer& gt)
 	}
 }
 
-void BlendApp::UpdateMainPassCB(const GameTimer& gt)
+void A2::UpdateMainPassCB(const GameTimer& gt)
 {
 	XMMATRIX view = XMLoadFloat4x4(&mView);
 	XMMATRIX proj = XMLoadFloat4x4(&mProj);
@@ -497,9 +494,9 @@ void BlendApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.DeltaTime = gt.DeltaTime();
 	mMainPassCB.AmbientLight = { 0.5f, 0.5f, 0.5f, 0.8f };
 
-	mMainPassCB.Lights[0].Position = { 0.0f, 0.0f, 0.0f };
-	mMainPassCB.Lights[0].Direction = { 0, -5.0f, 0 };
-	mMainPassCB.Lights[0].Strength = { 0.0f, 0.0f, 0.0f };
+	mMainPassCB.Lights[0].Position = { 0.0f, 10.0f, 0.0f };
+	mMainPassCB.Lights[0].Direction = { 0, -1.0f, 0 };
+	mMainPassCB.Lights[0].Strength = { 0.1f, 0.1f, 0.1f };
 
 	mMainPassCB.Lights[1].Position = { 2.0f, 40.0f, -2.0f };
 	mMainPassCB.Lights[1].Strength = { 10.0f, 1.0f, 1.0f };
@@ -516,11 +513,23 @@ void BlendApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.Lights[5].Position = { -6.0f, 10.0f, 0.0f };
 	mMainPassCB.Lights[5].Strength = { 3.0f, 1.0f, 10.0f };
 
+	mMainPassCB.Lights[6].Position = { -2.0f, 18.0f, -5.0f };
+	mMainPassCB.Lights[6].Strength = { 6.0f, 1.0f, 6.0f };
+
+	mMainPassCB.Lights[7].Position = { 8.0f, 18.0f, -5.0f };
+	mMainPassCB.Lights[7].Strength = { 8.0f, 1.0f, 1.0f };
+
+	mMainPassCB.Lights[8].Position = { 20.0f, 10.0f, -5.0f };
+	mMainPassCB.Lights[8].Strength = { 4.0f, 1.0f, 2.0f };
+
+	mMainPassCB.Lights[9].Position = { -25.0f, 17.0f, -5.0f };
+	mMainPassCB.Lights[9].Strength = { 4.0f, 1.0f, 10.0f };
+
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
 }
 
-void BlendApp::UpdateWaves(const GameTimer& gt)
+void A2::UpdateWaves(const GameTimer& gt)
 {
 	// Every quarter second, generate a random wave.
 	static float t_base = 0.0f;
@@ -560,7 +569,7 @@ void BlendApp::UpdateWaves(const GameTimer& gt)
 	mWavesRitem->Geo->VertexBufferGPU = currWavesVB->Resource();
 }
 
-void BlendApp::LoadTextures()
+void A2::LoadTextures()
 {
 	auto grassTex = std::make_unique<Texture>();
 	grassTex->Name = "grassTex";
@@ -619,7 +628,12 @@ void BlendApp::LoadTextures()
 		checkboardTex->Resource, checkboardTex->UploadHeap));
 
 
-
+	auto treeArrayTex = std::make_unique<Texture>();
+	treeArrayTex->Name = "treeArrayTex";
+	treeArrayTex->Filename = L"./Tex/tree01S.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), treeArrayTex->Filename.c_str(),	
+		treeArrayTex->Resource, treeArrayTex->UploadHeap));
 
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
@@ -629,11 +643,13 @@ void BlendApp::LoadTextures()
 	mTextures[tileTex->Name] = std::move(tileTex);
 	mTextures[snowTex->Name] = std::move(snowTex);
 	mTextures[checkboardTex->Name] = std::move(checkboardTex);
+	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
+
 
 	
 }
 
-void BlendApp::BuildRootSignature()
+void A2::BuildRootSignature()
 {
 	CD3DX12_DESCRIPTOR_RANGE texTable;
 	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
@@ -673,13 +689,13 @@ void BlendApp::BuildRootSignature()
 		IID_PPV_ARGS(mRootSignature.GetAddressOf())));
 }
 
-void BlendApp::BuildDescriptorHeaps()
+void A2::BuildDescriptorHeaps()
 {
 	//
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 9;
+	srvHeapDesc.NumDescriptors = 10;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -697,6 +713,7 @@ void BlendApp::BuildDescriptorHeaps()
 	auto tileTex = mTextures["tileTex"]->Resource;
 	auto snowTex = mTextures["snowTex"]->Resource;
 	auto checkTex = mTextures["checkTex"]->Resource;
+	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -750,12 +767,12 @@ void BlendApp::BuildDescriptorHeaps()
 
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-
-	srvDesc.Format = waterTex->GetDesc().Format;
-	md3dDevice->CreateShaderResourceView(waterTex.Get(), &srvDesc, hDescriptor);
+	
+	srvDesc.Format = treeArrayTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
 }
 
-void BlendApp::BuildShadersAndInputLayout()
+void A2::BuildShadersAndInputLayout()
 {
 	const D3D_SHADER_MACRO defines[] =
 	{
@@ -774,42 +791,63 @@ void BlendApp::BuildShadersAndInputLayout()
 	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", defines, "PS", "ps_5_0");
 	mShaders["alphaTestedPS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", alphaTestDefines, "PS", "ps_5_0");
 
+	mShaders["treeSpriteVS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "VS", "vs_5_1");
+	mShaders["treeSpriteGS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "GS", "gs_5_1");
+	mShaders["treeSpritePS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", alphaTestDefines, "PS", "ps_5_1");
+
 	mInputLayout =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
+
+	mTreeSpriteInputLayout =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "SIZE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
 }
 
-void BlendApp::BuildLandGeometry()
+void A2::BuildTreeSpritesGeometry()
 {
-	GeometryGenerator geoGen;
-	GeometryGenerator::MeshData grid = geoGen.CreateGrid(160.0f, 160.0f, 50, 50);
 
-	//
-	// Extract the vertex elements we are interested and apply the height function to
-	// each vertex.  In addition, color the vertices based on their height so we have
-	// sandy looking beaches, grassy low hills, and snow mountain peaks.
-	//
-
-	std::vector<Vertex> vertices(grid.Vertices.size());
-	for (size_t i = 0; i < grid.Vertices.size(); ++i)
+	struct TreeSpriteVertex
 	{
-		auto& p = grid.Vertices[i].Position;
-		vertices[i].Pos = p;
-		vertices[i].Pos.y = GetHillsHeight(p.x, p.z);
-		vertices[i].Normal = GetHillsNormal(p.x, p.z);
-		vertices[i].TexC = grid.Vertices[i].TexC;
+		XMFLOAT3 Pos;
+		XMFLOAT2 Size;
+	};
+
+	static const int treeCount = 25;
+	std::array<TreeSpriteVertex, 25> vertices;
+
+	int temp = 0;
+	for (int i = 1; i < 10; i++)
+	{
+		vertices[i].Pos = XMFLOAT3((temp-40),2,-20);
+		vertices[i].Size = XMFLOAT2(5.0f, 5.0f);
+		temp+=10;
+	}
+	
+	temp = 0;
+	for (int i = 11; i < 20; i++)
+	{
+		vertices[i].Pos = XMFLOAT3((temp-40),2,20);
+		vertices[i].Size = XMFLOAT2(5.0f, 5.0f);
+		temp+=10;
 	}
 
-	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
+	std::array<std::uint16_t, 22> indices =
+	{
+		0, 1, 2, 3, 4, 5, 6, 7,
+		8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21
+	};
 
-	std::vector<std::uint16_t> indices = grid.GetIndices16();
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(TreeSpriteVertex);
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 
 	auto geo = std::make_unique<MeshGeometry>();
-	geo->Name = "landGeo";
+	geo->Name = "treeSpritesGeo";
 
 	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
 	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
@@ -823,7 +861,7 @@ void BlendApp::BuildLandGeometry()
 	geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
 		mCommandList.Get(), indices.data(), ibByteSize, geo->IndexBufferUploader);
 
-	geo->VertexByteStride = sizeof(Vertex);
+	geo->VertexByteStride = sizeof(TreeSpriteVertex);
 	geo->VertexBufferByteSize = vbByteSize;
 	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
 	geo->IndexBufferByteSize = ibByteSize;
@@ -833,12 +871,12 @@ void BlendApp::BuildLandGeometry()
 	submesh.StartIndexLocation = 0;
 	submesh.BaseVertexLocation = 0;
 
-	geo->DrawArgs["grid"] = submesh;
+	geo->DrawArgs["points"] = submesh;
 
-	mGeometries["landGeo"] = std::move(geo);
+	mGeometries["treeSpritesGeo"] = std::move(geo);
 }
 
-void BlendApp::BuildWavesGeometry()
+void A2::BuildWavesGeometry()
 {
 	std::vector<std::uint16_t> indices(3 * mWaves->TriangleCount()); // 3 indices per face
 	assert(mWaves->VertexCount() < 0x0000ffff);
@@ -894,7 +932,7 @@ void BlendApp::BuildWavesGeometry()
 	mGeometries["waterGeo"] = std::move(geo);
 }
 
-void BlendApp::BuildBoxGeometry()
+void A2::BuildBoxGeometry()
 {
 	GeometryGenerator geoGen;
 	GeometryGenerator::MeshData box = geoGen.CreateBox(1.0f, 1.0f, 1.0f, 3);
@@ -1035,7 +1073,7 @@ void BlendApp::BuildBoxGeometry()
 	mGeometries[geo->Name] = std::move(geo);
 }
 
-void BlendApp::BuildPSOs()
+void A2::BuildPSOs()
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
 
@@ -1122,9 +1160,35 @@ void BlendApp::BuildPSOs()
 	};
 	alphaTestedPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&alphaTestedPsoDesc, IID_PPV_ARGS(&mPSOs["alphaTested"])));
+
+	//
+	// PSO for tree sprites
+	//
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC treeSpritePsoDesc = opaquePsoDesc;
+	treeSpritePsoDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["treeSpriteVS"]->GetBufferPointer()),
+		mShaders["treeSpriteVS"]->GetBufferSize()
+	};
+	treeSpritePsoDesc.GS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["treeSpriteGS"]->GetBufferPointer()),
+		mShaders["treeSpriteGS"]->GetBufferSize()
+	};
+	treeSpritePsoDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["treeSpritePS"]->GetBufferPointer()),
+		mShaders["treeSpritePS"]->GetBufferSize()
+	};
+	//step1
+	treeSpritePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	treeSpritePsoDesc.InputLayout = { mTreeSpriteInputLayout.data(), (UINT)mTreeSpriteInputLayout.size() };
+	treeSpritePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+
+	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&treeSpritePsoDesc, IID_PPV_ARGS(&mPSOs["treeSprites"])));
 }
 
-void BlendApp::BuildFrameResources()
+void A2::BuildFrameResources()
 {
 	for (int i = 0; i < gNumFrameResources; ++i)
 	{
@@ -1133,7 +1197,7 @@ void BlendApp::BuildFrameResources()
 	}
 }
 
-void BlendApp::BuildMaterials()
+void A2::BuildMaterials()
 {
 	auto grass = std::make_unique<Material>();
 	grass->Name = "grass";
@@ -1202,7 +1266,13 @@ void BlendApp::BuildMaterials()
 	check0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	check0->Roughness = 0.1f;
 
-
+	auto treeSprites = std::make_unique<Material>();
+	treeSprites->Name = "treeSprites";
+	treeSprites->MatCBIndex = 8;
+	treeSprites->DiffuseSrvHeapIndex = 8;
+	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
+	treeSprites->Roughness = 0.125f;
 
 
 
@@ -1214,9 +1284,10 @@ void BlendApp::BuildMaterials()
 	mMaterials["tile0"] = std::move(tile0);
 	mMaterials["snow0"] = std::move(snow0);
 	mMaterials["check0"] = std::move(check0);
+	mMaterials["treeSprites"] = std::move(treeSprites);
 }
 
-void BlendApp::BuildRenderItems()
+void A2::BuildRenderItems()
 {
 	auto wavesRitem = std::make_unique<RenderItem>();
 	wavesRitem->World = MathHelper::Identity4x4();
@@ -1369,13 +1440,25 @@ void BlendApp::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem2.get());
 	mAllRitems.push_back(std::move(gridRitem2));
 
+	auto treeSpritesRitem = std::make_unique<RenderItem>();
+	treeSpritesRitem->World = MathHelper::Identity4x4();
+	treeSpritesRitem->ObjCBIndex = 11;
+	treeSpritesRitem->Mat = mMaterials["treeSprites"].get();
+	treeSpritesRitem->Geo = mGeometries["treeSpritesGeo"].get();
+	treeSpritesRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+	treeSpritesRitem->IndexCount = treeSpritesRitem->Geo->DrawArgs["points"].IndexCount;
+	treeSpritesRitem->StartIndexLocation = treeSpritesRitem->Geo->DrawArgs["points"].StartIndexLocation;
+	treeSpritesRitem->BaseVertexLocation = treeSpritesRitem->Geo->DrawArgs["points"].BaseVertexLocation;
+
+	mRitemLayer[(int)RenderLayer::AlphaTestedTreeSprites].push_back(treeSpritesRitem.get());
 
 	mAllRitems.push_back(std::move(wavesRitem));
-	// mAllRitems.push_back(std::move(gridRitem));
-	 mAllRitems.push_back(std::move(boxRitem));
+	mAllRitems.push_back(std::move(boxRitem));
+	mAllRitems.push_back(std::move(treeSpritesRitem));
+
 }
 
-void BlendApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
+void A2::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
 {
 	UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 	UINT matCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(MaterialConstants));
@@ -1409,7 +1492,7 @@ void BlendApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::ve
 	}
 }
 
-std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> BlendApp::GetStaticSamplers()
+std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> A2::GetStaticSamplers()
 {
 	// Applications usually only need a handful of samplers.  So just define them all up front
 	// and keep them available as part of the root signature.  
@@ -1466,12 +1549,12 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> BlendApp::GetStaticSamplers()
 		anisotropicWrap, anisotropicClamp };
 }
 
-float BlendApp::GetHillsHeight(float x, float z)const
+float A2::GetHillsHeight(float x, float z)const
 {
 	return 0.3f*(z*sinf(0.1f*x) + x * cosf(0.1f*z));
 }
 
-XMFLOAT3 BlendApp::GetHillsNormal(float x, float z)const
+XMFLOAT3 A2::GetHillsNormal(float x, float z)const
 {
 	// n = (-df/dx, 1, -df/dz)
 	XMFLOAT3 n(

@@ -192,6 +192,7 @@ int main()
 		world.getSystemManager().getSystem<SetAerodynamicTensorSystem>().Update(deltaTime);
 		world.getSystemManager().getSystem<LifeTimeSystem>().Update(deltaTime);
 		world.getSystemManager().getSystem<BoatSimulatorSystem>().Update(deltaTime);
+		world.getSystemManager().getSystem<BuoyancySystem>().Update(deltaTime);
 
 		// Update Transform
 		world.getSystemManager().getSystem<UpdateTransformMatricesSystem>().Update(deltaTime);
@@ -203,7 +204,6 @@ int main()
 
 
 		//float fixedDeltaTime = 1 / 60.0f;
-		world.getSystemManager().getSystem<AeroSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<AeroSystem>().Update(fixedDeltaTime);
 
 
@@ -221,7 +221,7 @@ int main()
 		world.getSystemManager().getSystem<RigidBodySystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<SphereColliderSystem>().Update(fixedDeltaTime);
 		world.getSystemManager().getSystem<BoxColliderSystem>().Update(fixedDeltaTime);
-		world.getSystemManager().getSystem<BuoyancySystem>().Update(fixedDeltaTime);
+		
 
 		// Physics Solvers
 		world.getSystemManager().getSystem<SphereContactGeneratorSystem>().Update(fixedDeltaTime);
@@ -298,9 +298,11 @@ void LoadModels(ECSWorld& world)
 		//ModelData("Resources/Models/snowy-mountain-terrain/SnowyMountainMesh.obj"),
 		//ModelData("Resources/Models/Sponza-master/sponza.obj"),
 		//ModelData("Resources/Models/nanosuit/nanosuit.obj"),*/
-		ModelData("Resources/Models/supermarine-spitfire/spitfire.fbx",
-			{{"spitfire_d.png"}})
-		});
+		ModelData(
+			"Resources/Models/supermarine-spitfire/spitfire.fbx",
+			{{"spitfire_d.png"}}
+		)
+	});
 }
 
 void MakeABunchaObjects(ECSWorld& world)
@@ -464,22 +466,16 @@ void MakeCablesAndRods(ECSWorld& world)
 void MakeFlight(ECSWorld& world)
 {
 	auto e = world.createEntity();
-	// glm::vec3 rotationInRads = glm::vec3(
-	// 	glm::radians(-90.0f),
-	// 	glm::radians(180.0f), glm::radians(0.0f)
-	// );
-	// Quaternion orientation = glm::quat(rotationInRads);
-	e.addComponent<TransformComponentV2>(Vector3(0, 350.0f, 0), Vector3(0.10f, 0.1f, 0.1f));
+	e.addComponent<TransformComponentV2>(Vector3(0.0f, 480.0f, 0.0f), Vector3(0.10f, 0.1f, 0.1f));
 
 	// Add mesh
 	e.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx", Vector3(0, -50, 20), Vector3(-90, 0, 0));
-	e.addComponent<RigidBodyComponent>(10.0f ,0.3f, 0.5f);
-	//e.addComponent<FlighSimulatorComponent>();
+	e.addComponent<RigidBodyComponent>(2.0f ,0.2f, 0.5f);
 	e.addComponent<FollowCameraComponent>(Vector3(0.0f, 15.0f, 40.0f));
 	e.addComponent<CameraLookComponent>();
 	e.addComponent<InfiniteSpawnTargetComponent>();
 	e.addComponent<BoatSimulatorComponent>();
-	
+	e.addComponent<Buoyancy>();
 
 	// std::vector<int> p1 { GLFW_KEY_E };
 	// std::vector<int> n1 { GLFW_KEY_Q };
@@ -510,11 +506,11 @@ void MakeFlight(ECSWorld& world)
 
 	R.addComponent<AeroControlComponent>(pR, nR);
 	R.addComponent<AeroMinMaxComponent>(
-		Mat3(0, 0, 0, 0, 0, 0, 0.000002f, 0, 0),
+		Mat3(0, 0, 0, 0, 0, 0, 0.0000002f, 0, 0),
 		Mat3(0, 0, 0, 0, 0, 0, 0.00f, 0, 0),
-		Mat3(0, 0, 0, 0, 0, 0, -0.000002f, 0, 0)
+		Mat3(0, 0, 0, 0, 0, 0, -0.0000002f, 0, 0)
 	);
-	R.addComponent<AeroComponent>(e, Mat3(1.0f), Vector3(0, 0, -200.0f));
+	R.addComponent<AeroComponent>(e, Mat3(2.0f), Vector3(0, 0, -200.0f));
 
 	// //Back Wing
 	// std::vector<int> p2{ GLFW_KEY_W };
@@ -530,13 +526,18 @@ void MakeFlight(ECSWorld& world)
 
 	for (int i = -40; i <= 40; i++)
 	{
-		auto buildingR = world.createEntity();
-		buildingR.addComponent<TransformComponentV2>(Vector3(100.0f, 0.0f, 50.0f * i));
-		buildingR.addComponent<InfiniteSpawnComponent>(RANDOM_FLOAT(100.0f, 500.0f));
+		// auto buildingR = world.createEntity();
+		// buildingR.addComponent<TransformComponentV2>(Vector3(100.0f, 0.0f, 50.0f * i));
+		// buildingR.addComponent<InfiniteSpawnComponent>(RANDOM_FLOAT(100.0f, 500.0f));
 
-		auto buildingL = world.createEntity();
-		buildingL.addComponent<TransformComponentV2>(Vector3(-100.0f, 0.0f, 50.0f * i));
-		buildingL.addComponent<InfiniteSpawnComponent>(RANDOM_FLOAT(100.0f, 500.0f));
+		// auto buildingL = world.createEntity();
+		// buildingL.addComponent<TransformComponentV2>(Vector3(-100.0f, 0.0f, 50.0f * i));
+		// buildingL.addComponent<InfiniteSpawnComponent>(RANDOM_FLOAT(100.0f, 500.0f));
+
+		auto WaterSurface = world.createEntity();
+		WaterSurface.addComponent<TransformComponentV2>(Vector3(0.0f, -450.0f, 50.0f * i));
+		WaterSurface.addComponent<InfiniteSpawnComponent>(RANDOM_FLOAT(100.0f, 500.0f));
+
 	}
 }
 

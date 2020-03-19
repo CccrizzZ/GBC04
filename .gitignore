@@ -28,7 +28,7 @@
 *.exe
 *.out
 *.app
-*.vs
+.vs/
 *.vscode
 *.sdf
 *.db

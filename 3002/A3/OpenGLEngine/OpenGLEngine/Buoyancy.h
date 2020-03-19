@@ -4,16 +4,24 @@
 
 namespace Reality {
 
-	class Buoyancy : public ECSSystem
+	struct Buoyancy
 	{
 	public:
-		Buoyancy() {};
-		Buoyancy(const Vector3& center, float maxdepth = 100, float vol = 1000, float waterheight = 100, float liquiddensity = 1000.0f):
+
+		Buoyancy(const Vector3& center = Vector3(0,0,0), float maxdepth = 100, float vol = 1000, float waterheight = 450, float liquiddensity = 1000.0f):
 			maxDepth(maxdepth), volume(vol), waterHeight(waterheight), liquidDensity(liquiddensity), centerOfBuoyancy(center)
 		{
 
 		}
-
+		float GetWaterHeight()
+		{
+			return waterHeight;
+		}
+		float GetLiquidDensity()
+		{
+			return liquidDensity;
+		}
+	private:
 
 		// when sumbmerged to maxDepth buoyancy force is at maximum
 		float maxDepth;
@@ -29,6 +37,7 @@ namespace Reality {
 
 		// center of the force
 		Vector3 centerOfBuoyancy;
+
 	};
 }
 

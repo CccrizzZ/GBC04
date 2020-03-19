@@ -5,7 +5,7 @@ namespace Reality
 {
 	struct BoatSimulatorComponent
 	{
-		BoatSimulatorComponent(Vector3 _propulsion = Vector3(0.0f ,0.0f, 1200.0f))
+		BoatSimulatorComponent(Vector3 _propulsion = Vector3(0.0f ,0.0f, 800.0f))
 			:propulsion(_propulsion)
 		{
 

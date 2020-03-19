@@ -1,5 +1,5 @@
 #include "BuoyancySystem.h"
-
+#include <time.h>
 namespace Reality
 {
 	BuoyancySystem::BuoyancySystem()
@@ -17,7 +17,31 @@ namespace Reality
 			auto &transform = e.getComponent<TransformComponentV2>();
 			auto &BuoyancyComp = e.getComponent<Buoyancy>();
 
-			rigidbody.AddForce(Vector3(0, 1, 0));
+			srand(time(NULL));
+
+			float depth = BuoyancyComp.GetWaterHeight() - transform.GetPosition().y;
+
+
+			// if boat under waterheight apply force at random rate
+			if (transform.GetPosition().y <= BuoyancyComp.GetWaterHeight())
+			{
+				
+				if (((rand()%100-1)%2!=1))
+				{
+					
+					rigidbody.AddForce(Vector3(0, depth, 0));
+					// rigidbody.AddForceAtPoint(
+					// 	Vector3(0, (rand() % 200), 0),
+					// 	Vector3((rand() % 200), (rand() % 200), (rand() % 200)),
+					// 	Vector3(0, 0, 0)
+					// );
+
+				}
+			}
+			
+			
+
+
 		}
 	}
 }

@@ -26,17 +26,17 @@ namespace Reality
 			if (transform.GetPosition().y <= BuoyancyComp.GetWaterHeight())
 			{
 				
-				if (((rand()%100-1)%2!=1))
-				{
 					
-					rigidbody.AddForce(Vector3(0, depth, 0));
+					rigidbody.AddForce(
+						Vector3(0, (depth * (rigidbody.gravityScale / rigidbody.inverseMass)) * BuoyancyComp.GetLiquidDensity(), 0)
+					);
+
 					// rigidbody.AddForceAtPoint(
 					// 	Vector3(0, (rand() % 200), 0),
 					// 	Vector3((rand() % 200), (rand() % 200), (rand() % 200)),
 					// 	Vector3(0, 0, 0)
 					// );
 
-				}
 			}
 			
 			

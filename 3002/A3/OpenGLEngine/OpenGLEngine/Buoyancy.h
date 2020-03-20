@@ -8,7 +8,7 @@ namespace Reality {
 	{
 	public:
 
-		Buoyancy(const Vector3& center = Vector3(0,0,0), float maxdepth = 100, float vol = 1000, float waterheight = 450, float liquiddensity = 1000.0f):
+		Buoyancy(const Vector3& center = Vector3(0,0,0), float maxdepth = 100, float vol = 1000, float waterheight = 450, float liquiddensity = 0.8f):
 			maxDepth(maxdepth), volume(vol), waterHeight(waterheight), liquidDensity(liquiddensity), centerOfBuoyancy(center)
 		{
 

@@ -21,26 +21,23 @@ namespace Reality
 			auto& boat = e.getComponent<BoatSimulatorComponent>();
 
 
-		
-
 
 
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 			{
-				rigidbody.AddForce(eTransform.LocalToWorldDirection(boat.propulsion+Vector3(0,i * 15,0)));
+				rigidbody.AddForce(eTransform.LocalToWorldDirection(boat.propulsion+Vector3(0, i * 15, 0)));
 				if (i > -15)
 				{
-					eTransform.SetRotation(Vector3(i, eTransform.GetRotation().y, eTransform.GetRotation().z));
+					eTransform.SetRotX(false);
 					i -= 0.5;
 				}
-				
 			}
 
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE)
 			{
 				if (i < 0)
 				{
-					eTransform.SetRotation(Vector3(i, 0, 0));
+					eTransform.SetRotX(true);
 					i += 0.5;
 				}
 			}
@@ -50,7 +47,7 @@ namespace Reality
 				rigidbody.AddForce(eTransform.LocalToWorldDirection(-(boat.propulsion + Vector3(0, i * 15, 0))));
 				if (i < 15)
 				{
-					eTransform.SetRotation(Vector3(i,0, 0));
+					eTransform.SetRotX(true);
 					i += 0.5;
 				}
 			}
@@ -59,12 +56,20 @@ namespace Reality
 			{
 				if (i > 0)
 				{
-					eTransform.SetRotation(Vector3(i, 0, 0));
+					eTransform.SetRotX(false);
 					i -= 0.5;
 				}
 			}
 
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			{
+				eTransform.SetRotZ(true);
+			}
 
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			{
+				eTransform.SetRotZ(false);
+			}
 		}
 
 		if (getEntities().size() > 0)

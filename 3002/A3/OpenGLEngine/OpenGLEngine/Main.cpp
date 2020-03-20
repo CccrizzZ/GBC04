@@ -468,9 +468,11 @@ void MakeFlight(ECSWorld& world)
 	auto e = world.createEntity();
 	e.addComponent<TransformComponentV2>(Vector3(0.0f, 480.0f, 0.0f), Vector3(0.10f, 0.1f, 0.1f));
 
+
+
 	// Add mesh
 	e.addComponent<ModelComponent>("Resources/Models/supermarine-spitfire/spitfire.fbx", Vector3(0, -50, 20), Vector3(-90, 0, 0));
-	e.addComponent<RigidBodyComponent>(2.0f ,0.2f, 0.5f);
+	e.addComponent<RigidBodyComponent>(20.0f ,0.2f, 0.5f);
 	e.addComponent<FollowCameraComponent>(Vector3(0.0f, 15.0f, 40.0f));
 	e.addComponent<CameraLookComponent>();
 	e.addComponent<InfiniteSpawnTargetComponent>();
@@ -499,18 +501,18 @@ void MakeFlight(ECSWorld& world)
 	// );
 	// LW.addComponent<AeroComponent>(e, Mat3(1.0f), Vector3(-100.0f, 0, 50.0f));
 
-	//Rudder 
-	std::vector<int> pR = { GLFW_KEY_A };
-	std::vector<int> nR = { GLFW_KEY_D };
-	auto R = world.createEntity();
+	// //Rudder 
+	// std::vector<int> pR = { GLFW_KEY_A };
+	// std::vector<int> nR = { GLFW_KEY_D };
+	// auto R = world.createEntity();
 
-	R.addComponent<AeroControlComponent>(pR, nR);
-	R.addComponent<AeroMinMaxComponent>(
-		Mat3(0, 0, 0, 0, 0, 0, 0.0000002f, 0, 0),
-		Mat3(0, 0, 0, 0, 0, 0, 0.00f, 0, 0),
-		Mat3(0, 0, 0, 0, 0, 0, -0.0000002f, 0, 0)
-	);
-	R.addComponent<AeroComponent>(e, Mat3(2.0f), Vector3(0, 0, -200.0f));
+	// R.addComponent<AeroControlComponent>(pR, nR);
+	// R.addComponent<AeroMinMaxComponent>(
+	// 	Mat3(0, 0, 0, 0, 0, 0, 0.0000002f, 0, 0),
+	// 	Mat3(0, 0, 0, 0, 0, 0, 0.00f, 0, 0),
+	// 	Mat3(0, 0, 0, 0, 0, 0, -0.0000002f, 0, 0)
+	// );
+	// R.addComponent<AeroComponent>(e, Mat3(2.0f), Vector3(0, 0, -200.0f));
 
 	// //Back Wing
 	// std::vector<int> p2{ GLFW_KEY_W };
@@ -535,7 +537,7 @@ void MakeFlight(ECSWorld& world)
 		// buildingL.addComponent<InfiniteSpawnComponent>(RANDOM_FLOAT(100.0f, 500.0f));
 
 		auto WaterSurface = world.createEntity();
-		WaterSurface.addComponent<TransformComponentV2>(Vector3(0.0f, -450.0f, 50.0f * i));
+		WaterSurface.addComponent<TransformComponentV2>(Vector3(0.0f, 440.0f, 50.0f * i));
 		WaterSurface.addComponent<InfiniteSpawnComponent>(RANDOM_FLOAT(100.0f, 500.0f));
 
 	}

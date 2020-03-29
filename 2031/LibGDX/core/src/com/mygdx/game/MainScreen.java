@@ -34,7 +34,7 @@ public abstract class MainScreen extends ScreenBeta {
         //   gdxHappyFace.addAction(moveTo);
 
         moveBy = new MoveByAction();
-        moveBy.setAmount(100.0f, 0.0f);
+        moveBy.setAmount(400.0f, 0.0f);
         moveBy.setDuration(1.2f);
 
         RepeatAction repeatAction = new RepeatAction();
@@ -43,10 +43,7 @@ public abstract class MainScreen extends ScreenBeta {
         gdxHappyFace.addAction(repeatAction);
 
         sc2 = new MainScreen2() {
-            @Override
-            public void update(float dt) {
 
-            }
         };
     }
 

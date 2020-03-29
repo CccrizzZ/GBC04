@@ -21,6 +21,10 @@ namespace Reality {
 		{
 			return liquidDensity;
 		}
+		Vector3 GetCenterOfBuoyancy()
+		{
+			return centerOfBuoyancy;
+		}
 	private:
 
 		// when sumbmerged to maxDepth buoyancy force is at maximum

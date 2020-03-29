@@ -75,16 +75,16 @@ namespace Reality
 			{
 				glm::vec3 rad = glm::vec3(
 					glm::radians(0.0f),
-					glm::radians(1.0f),
-					glm::radians(0.0f)
+					glm::radians(0.0f),
+					glm::radians(1.0f)
 				);
 				orientation = glm::quat(rad+glm::eulerAngles(orientation));
 			}else
 			{
 					glm::vec3 rad = glm::vec3(
 					glm::radians(0.0f),
-					glm::radians(-1.0f),
-					glm::radians(0.0f)
+					glm::radians(0.0f),
+					glm::radians(-1.0f)
 				);
 				orientation = glm::quat(rad+glm::eulerAngles(orientation));
 			}
@@ -105,6 +105,27 @@ namespace Reality
 					glm::vec3 rad = glm::vec3(
 					glm::radians(-0.5f),
 					glm::radians(0.0f),
+					glm::radians(0.0f)
+				);
+				orientation = glm::quat(rad+glm::eulerAngles(orientation));
+			}
+		}
+
+		inline void SetRotY(bool clockwise)
+		{
+			if (clockwise == true)
+			{
+				glm::vec3 rad = glm::vec3(
+					glm::radians(0.0f),
+					glm::radians(0.5f),
+					glm::radians(0.0f)
+				);
+				orientation = glm::quat(rad+glm::eulerAngles(orientation));
+			}else
+			{
+					glm::vec3 rad = glm::vec3(
+					glm::radians(0.0f),
+					glm::radians(-0.5f),
 					glm::radians(0.0f)
 				);
 				orientation = glm::quat(rad+glm::eulerAngles(orientation));

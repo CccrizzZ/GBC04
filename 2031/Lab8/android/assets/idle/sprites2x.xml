@@ -1,0 +1,6 @@
+<TextureAtlas imagePath="sprites2x.png">
+	<SubTexture name="idle_0.png" x="0" y="38" width="41" height="40"/>
+	<SubTexture name="idle_1.png" x="42" y="0" width="41" height="39"/>
+	<SubTexture name="idle_2.png" x="42" y="40" width="41" height="38"/>
+	<SubTexture name="idle_3.png" x="0" y="0" width="41" height="37"/>
+</TextureAtlas>

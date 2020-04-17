@@ -2,8 +2,11 @@ package com.arkanoid.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.actions.MoveByAction;
 import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
+
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -18,13 +21,16 @@ public abstract class MainGameScreen extends ScreenBeta {
     ActorBeta bg;
 
     ActorBeta brick;
-    ActorBeta bricks[];
 
+    Group bricks;
 
     MoveByAction ballMovement;
 
 
     int score;
+
+    float BallVelocityX;
+    float BallVelocityY;
 
     @Override
     public void initialize() {
@@ -33,6 +39,9 @@ public abstract class MainGameScreen extends ScreenBeta {
         font = new BitmapFont();
         font.getData().setScale(5,5);
         score = 0;
+
+        BallVelocityX = 10;
+        BallVelocityY = 10;
 
         bg = new ActorBeta(0,0,mainStage);
         bg.loadTexture("bg.png");
@@ -43,9 +52,12 @@ public abstract class MainGameScreen extends ScreenBeta {
         player.sizeBy(200,40);
 
 
-        ball = new ActorBeta(200,150,mainStage);
+        ball = new ActorBeta(200,50+player.getX()/2,mainStage);
         ball.loadTexture("ball.png");
         ball.sizeBy(30);
+
+
+
 
         ballMovement = new MoveByAction();
         ballMovement.setAmount(0,-500);
@@ -54,48 +66,85 @@ public abstract class MainGameScreen extends ScreenBeta {
         RepeatAction repeatAction = new RepeatAction();
         repeatAction.setCount(RepeatAction.FOREVER);
         repeatAction.setAction(ballMovement);
-        ball.addAction(repeatAction);
+//        ball.addAction(repeatAction);
 
-        bricks = new ActorBeta[20];
+        bricks = new Group();
 
-        int temp = 0;
         for (int i = 0; i < 4; i++){
             for (int j = 0; j < 5; j++){
                 brick = new ActorBeta(200*j+Gdx.graphics.getWidth()/14, 100*i+1000, mainStage);
+
                 brick.loadTexture("bricks.png");
                 brick.sizeBy(Gdx.graphics.getWidth()/12,30);
-                bricks[temp] = brick;
-                temp++;
-
+                bricks.addActor(brick);
             }
         }
+
+
     }
 
 
     @Override
     public void update(float dt) {
-        score++;
 
-        if (ball.getY()<player.getY()+player.getHeight()){
-            ballMovement.setAmount(0,1600);
-            ballMovement.setDuration(5);
+
+        ball.setX(ball.getX()+BallVelocityX);
+        ball.setY(ball.getY()+BallVelocityY);
+
+
+
+        if (ball.getY() + ball.getHeight()/2 >= player.getY()
+                && ball.getX() + ball.getWidth()/2 >= player.getX()
+                && ball.getX() <= player.getX() + player.getWidth()
+                && ball.getY() <= player.getY()+player.getHeight()){
+            reboundY();
         }
+
+
         if (ball.getY()+ball.getHeight()>Gdx.graphics.getHeight()){
-            ballMovement.setAmount(0,-500);
-            ballMovement.setDuration(5);
+            reboundY();
+        }
+
+        if (ball.getX()+ball.getWidth()>Gdx.graphics.getWidth()){
+            reboundX();
+        }
+
+        if (ball.getX() < 0 && ball.getY() > 0){
+            reboundX();
+        }
+
+        if (ball.getY() < 0){
+            ArkanoidGame.setActiveScreen(new DeathScreen(){});
+        }
+
+
+        for(Actor ab: bricks.getChildren()) {
+            if (    ball.getY() + ball.getHeight()/2 >= ab.getY()
+                    && ball.getX() + ball.getWidth()/2 >= ab.getX()
+                    && ball.getX() <= ab.getX() + ab.getWidth()
+                    && ball.getY() <= ab.getY()+ab.getHeight()
+            ){
+                ab.remove();
+                score+=100;
+            }
+
 
         }
+
     }
 
     @Override
     public void render(float delta) {
         super.render(delta);
 
-
         batch.begin();
         font.draw(batch, "Score", Gdx.graphics.getWidth() / 2 - "Score".length()*16, 1700);
         font.draw(batch, Integer.toString(score), Gdx.graphics.getWidth() / 2 - Integer.toString(score).length()*16, 1600);
+        bricks.draw(batch, 1.0f);
         batch.end();
+
+
+
     }
 
     @Override
@@ -130,7 +179,20 @@ public abstract class MainGameScreen extends ScreenBeta {
 
 
 
-    public void rebound(){
+    public void reboundX(){
 
+        BallVelocityX = -BallVelocityX;
+    }
+
+    public void reboundY(){
+        BallVelocityY = -BallVelocityY;
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        if (batch != null)
+            batch.dispose();
+        batch = null;
     }
 }
